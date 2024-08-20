@@ -58,7 +58,57 @@ example_entries = [
             "Confirm the name aligns with your brand vision."
         ]
     },
-    # ... (other entries are similar, so they're omitted for brevity)
+    {
+        "Title": "Logo & Tag Line",
+        "Steps": [
+            "Hire a graphic designer or use an online tool.",
+            "Create multiple logo concepts.",
+            "Test your logo on different mediums (business cards, website, etc.).",
+            "Develop a tagline that represents your business.",
+            "Ensure both logo and tagline are trademarked."
+        ]
+    },
+    {
+        "Title": "Secure Business Address",
+        "Steps": [
+            "Choose a physical or virtual business address.",
+            "Ensure the address complies with local zoning laws.",
+            "Consider a professional business mailbox service.",
+            "Update your business documents with the new address.",
+            "Communicate the address to stakeholders."
+        ]
+    },
+    {
+        "Title": "Purchase State Corporation",
+        "Steps": [
+            "Choose your state of incorporation.",
+            "Prepare and file the Articles of Incorporation.",
+            "Pay the required state fees.",
+            "Appoint directors and create bylaws.",
+            "Obtain your corporate kit."
+        ]
+    },
+    {
+        "Title": "EIN Number",
+        "Steps": [
+            "Apply for an EIN through the IRS website.",
+            "Use the EIN for tax filings and opening bank accounts.",
+            "Update your business records with the EIN.",
+            "Securely store the EIN confirmation.",
+            "Communicate the EIN to necessary parties."
+        ]
+    },
+    {
+        "Title": "Business Accounts",
+        "Steps": [
+            "Choose a bank for your business account.",
+            "Gather necessary documents (EIN, Articles of Incorporation, etc.).",
+            "Open a checking and savings account.",
+            "Consider opening a business credit card.",
+            "Set up online banking and alerts."
+        ]
+    },
+    # Additional entries can be added similarly...
 ]
 
 # Display Titles with Steps
