@@ -28,8 +28,13 @@ def load_local_data():
 
 def add_title_steps(title, steps):
     global data
-    new_entry = {"Title": title, "Steps": steps, "Completed": [False]*len(steps)}
-    data = data.append(new_entry, ignore_index=True)
+    new_entry = pd.DataFrame({
+        "Title": [title],
+        "Steps": [steps],
+        "Completed": [[False]*len(steps)]
+    })
+    global data
+    data = pd.concat([data, new_entry], ignore_index=True)
     save_local_data()
 
 def edit_title_steps(entry_id, updated_title, updated_steps):
@@ -232,15 +237,17 @@ for entry in example_entries:
 for entry_id, entry_data in data.iterrows():
     with st.expander(f"<h1 style='font-size: 32px;'>{entry_data['Title']}</h1>", expanded=True, unsafe_allow_html=True):
         st.write("### Steps:")
-        for step_index, (step, completed) in enumerate(zip(entry_data['Steps'], entry_data['Completed'])):
+        steps = eval(entry_data['Steps'])  # Convert string representation of list back to list
+        completed = eval(entry_data['Completed'])  # Convert string representation of list back to list
+        for step_index, (step, completed) in enumerate(zip(steps, completed)):
             is_checked = st.checkbox(step, value=completed, key=f"{entry_id}-{step_index}")
             if is_checked != completed:
                 update_step_completion(entry_id, step_index, is_checked)
 
-        # Edit button and functionality
-        if st.button(f"Edit {entry_id}", key=f"edit-{entry_id}"):
-            updated_title = st.text_input("Title", value=entry_data["Title"], key=f"title-{entry_id}")
-            updated_steps = st.text_area("Steps (one per line)", value="\n".join(entry_data["Steps"]), key=f"steps-{entry_id}")
+        # Edit functionality
+        with st.expander("Edit This Project", expanded=False):
+            updated_title = st.text_input("Update Title", value=entry_data['Title'])
+            updated_steps = st.text_area("Update Steps (one per line)", value="\n".join(steps))
             if st.button("Save Changes", key=f"save-{entry_id}"):
                 edit_title_steps(entry_id, updated_title, updated_steps.split("\n"))
                 st.experimental_rerun()
@@ -259,4 +266,5 @@ with st.expander("Add New Title and Steps", expanded=True):
         st.experimental_rerun()
 
 st.write("### Credit Building Blueprint - Organized and Ready to Go!")
+
 
