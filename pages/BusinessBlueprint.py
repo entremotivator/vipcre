@@ -15,9 +15,7 @@ st.markdown("<h3 style='font-size:24px;'>Organize, Prioritize, and Manage Your B
 # Local Database
 def get_local_data():
     if "local_data.csv" in os.listdir():
-        # Read the CSV file
         df = pd.read_csv("local_data.csv")
-        # Convert string representations of lists back to lists
         df["Steps"] = df["Steps"].apply(lambda x: json.loads(x))
         df["Completed"] = df["Completed"].apply(lambda x: json.loads(x))
         df["CompletionDates"] = df["CompletionDates"].apply(lambda x: json.loads(x))
@@ -27,7 +25,6 @@ def get_local_data():
         return pd.DataFrame(columns=["ID", "Title", "Steps", "Completed", "CompletionDates", "Priorities"])
 
 def save_local_data(data):
-    # Convert lists to JSON strings for storage
     data["Steps"] = data["Steps"].apply(lambda x: json.dumps(x))
     data["Completed"] = data["Completed"].apply(lambda x: json.dumps(x))
     data["CompletionDates"] = data["CompletionDates"].apply(lambda x: json.dumps(x))
@@ -35,25 +32,38 @@ def save_local_data(data):
     data.to_csv("local_data.csv", index=False)
 
 def add_title_steps(data, title, steps):
+    if not isinstance(steps, list) or len(steps) == 0:
+        st.error("Steps must be a non-empty list.")
+        return data
+
+    completed = [False] * len(steps)
+    completion_dates = [''] * len(steps)
+    priorities = ['Low'] * len(steps)
+
     new_entry = pd.DataFrame({
         "ID": [str(uuid.uuid4())], 
         "Title": [title], 
         "Steps": [steps], 
-        "Completed": [[False]*len(steps)],
-        "CompletionDates": ['' for _ in steps],
-        "Priorities": ['Low' for _ in steps]  # Default priority
+        "Completed": [completed],
+        "CompletionDates": [completion_dates],
+        "Priorities": [priorities]
     })
+    
     data = pd.concat([data, new_entry], ignore_index=True)
     save_local_data(data)
     return data
 
 def edit_title_steps(data, entry_id, updated_title, updated_steps):
+    if not isinstance(updated_steps, list) or len(updated_steps) == 0:
+        st.error("Steps must be a non-empty list.")
+        return data
+
     index = data[data["ID"] == entry_id].index[0]
     data.at[index, "Title"] = updated_title
     data.at[index, "Steps"] = updated_steps
-    data.at[index, "Completed"] = [False]*len(updated_steps)  # Reset completion status
-    data.at[index, "CompletionDates"] = ['']*len(updated_steps)  # Reset completion dates
-    data.at[index, "Priorities"] = ['Low']*len(updated_steps)  # Reset priorities
+    data.at[index, "Completed"] = [False] * len(updated_steps)
+    data.at[index, "CompletionDates"] = [''] * len(updated_steps)
+    data.at[index, "Priorities"] = ['Low'] * len(updated_steps)
     save_local_data(data)
     return data
 
@@ -182,5 +192,3 @@ st.markdown(f"<p>Completed tasks: {completed_tasks}</p>", unsafe_allow_html=True
 st.markdown(f"<p>Pending tasks: {total_tasks - completed_tasks}</p>", unsafe_allow_html=True)
 
 st.write("### Business Blueprint 101 - Organized and ready to go!")
-
-
