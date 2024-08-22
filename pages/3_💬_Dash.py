@@ -7,26 +7,40 @@ from datetime import datetime, timedelta
 # Generate sample data
 def generate_sample_data():
     np.random.seed(42)
-    dates = pd.date_range(start="2024-01-01", periods=12, freq='M')
+    dates = pd.date_range(start="2014-01-01", periods=120, freq='M')  # 10 years of monthly data
+    
+    # Extended and diversified data
     data = {
         "Date": dates,
-        "Credit Score": np.random.randint(650, 850, size=12),
-        "Credit Utilization": np.random.uniform(0.2, 0.9, size=12),
-        "Total Debt": np.random.randint(1000, 5000, size=12),
-        "Monthly Payments": np.random.randint(100, 1000, size=12),
-        "Income": np.random.randint(3000, 7000, size=12),
-        "New Credit Accounts": np.random.randint(0, 3, size=12),
-        "Credit Limits": np.random.randint(5000, 20000, size=12),
-        "Payment History": np.random.choice(["On Time", "Late"], size=12, p=[0.9, 0.1]),
-        "Loan Balances": np.random.randint(1000, 5000, size=12),
-        "Account Age (Months)": np.random.randint(1, 120, size=12),
-        "Recent Transactions": np.random.randint(0, 10, size=12),
-        "Upcoming Payments": np.random.randint(50, 500, size=12),
-        "Credit Inquiries": np.random.randint(0, 5, size=12),
-        "Credit Report Summary": np.random.choice(["Good", "Average", "Poor"], size=12),
+        "Credit Score": np.random.randint(650, 850, size=120),
+        "Credit Utilization": np.random.uniform(0.2, 0.9, size=120),
+        "Total Debt": np.random.randint(1000, 20000, size=120),
+        "Monthly Payments": np.random.randint(100, 2000, size=120),
+        "Income": np.random.randint(3000, 10000, size=120),
+        "New Credit Accounts": np.random.randint(0, 5, size=120),
+        "Credit Limits": np.random.randint(5000, 50000, size=120),
+        "Payment History": np.random.choice(["On Time", "Late"], size=120, p=[0.85, 0.15]),
+        "Loan Balances": np.random.randint(1000, 20000, size=120),
+        "Account Age (Months)": np.random.randint(1, 180, size=120),
+        "Recent Transactions": np.random.randint(0, 20, size=120),
+        "Upcoming Payments": np.random.randint(50, 2000, size=120),
+        "Credit Inquiries": np.random.randint(0, 10, size=120),
+        "Credit Report Summary": np.random.choice(["Excellent", "Good", "Average", "Poor"], size=120),
+        "Credit Account Type": np.random.choice(["Credit Card", "Loan", "Mortgage", "Auto Loan"], size=120),
+        "Interest Rate": np.random.uniform(2.5, 18.0, size=120),
+        "Total Payments": np.random.uniform(1000, 20000, size=120),
+        "Credit Utilization Trend": np.random.uniform(0.1, 0.8, size=120),
     }
+    
     df = pd.DataFrame(data)
     df["Debt-to-Income Ratio"] = df["Total Debt"] / df["Income"]
+    
+    # Introduce some variability in interest rates and credit account types over time
+    df.loc[df['Credit Account Type'] == 'Credit Card', 'Interest Rate'] = np.random.uniform(10, 18.0, size=df[df['Credit Account Type'] == 'Credit Card'].shape[0])
+    df.loc[df['Credit Account Type'] == 'Loan', 'Interest Rate'] = np.random.uniform(3, 10, size=df[df['Credit Account Type'] == 'Loan'].shape[0])
+    df.loc[df['Credit Account Type'] == 'Mortgage', 'Interest Rate'] = np.random.uniform(2.5, 5, size=df[df['Credit Account Type'] == 'Mortgage'].shape[0])
+    df.loc[df['Credit Account Type'] == 'Auto Loan', 'Interest Rate'] = np.random.uniform(4, 12, size=df[df['Credit Account Type'] == 'Auto Loan'].shape[0])
+    
     return df
 
 df = generate_sample_data()
