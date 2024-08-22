@@ -15,9 +15,9 @@ st.markdown("<h3 style='font-size:24px;'>Organize, Prioritize, and Manage Your B
 @st.cache_data
 def get_local_data():
     if "local_data.csv" in os.listdir():
-        return pd.read_csv("local_data.csv", converters={"Steps": eval, "Completed": eval, "CompletionDates": eval})
+        return pd.read_csv("local_data.csv", converters={"Steps": eval, "Completed": eval, "CompletionDates": eval, "Priorities": eval})
     else:
-        return pd.DataFrame(columns=["ID", "Title", "Steps", "Completed", "CompletionDates"])
+        return pd.DataFrame(columns=["ID", "Title", "Steps", "Completed", "CompletionDates", "Priorities"])
 
 def save_local_data(data):
     data.to_csv("local_data.csv", index=False)
@@ -28,7 +28,8 @@ def add_title_steps(data, title, steps):
         "Title": [title], 
         "Steps": [steps], 
         "Completed": [[False]*len(steps)],
-        "CompletionDates": [[]*len(steps)]
+        "CompletionDates": ['' for _ in steps],
+        "Priorities": ['Low' for _ in steps]  # Default priority
     })
     data = pd.concat([data, new_entry], ignore_index=True)
     save_local_data(data)
@@ -40,6 +41,7 @@ def edit_title_steps(data, entry_id, updated_title, updated_steps):
     data.at[index, "Steps"] = updated_steps
     data.at[index, "Completed"] = [False]*len(updated_steps)  # Reset completion status
     data.at[index, "CompletionDates"] = ['']*len(updated_steps)  # Reset completion dates
+    data.at[index, "Priorities"] = ['Low']*len(updated_steps)  # Reset priorities
     save_local_data(data)
     return data
 
@@ -56,6 +58,12 @@ def toggle_step_completion(data, entry_id, step_index):
     else:  # If the task is already completed
         data.at[index, "Completed"][step_index] = False
         data.at[index, "CompletionDates"][step_index] = ''
+    save_local_data(data)
+    return data
+
+def update_priority(data, entry_id, step_index, new_priority):
+    index = data[data["ID"] == entry_id].index[0]
+    data.at[index, "Priorities"][step_index] = new_priority
     save_local_data(data)
     return data
 
@@ -109,13 +117,25 @@ for entry_id, entry_data in data.iterrows():
         steps = entry_data["Steps"]
         completed = entry_data["Completed"]
         completion_dates = entry_data["CompletionDates"]
+        priorities = entry_data["Priorities"]
         
-        for step_index, (step, completed_status, date) in enumerate(zip(steps, completed, completion_dates)):
+        for step_index, (step, completed_status, date, priority) in enumerate(zip(steps, completed, completion_dates, priorities)):
             checkbox_label = f"{step}"
             if st.checkbox(checkbox_label, value=completed_status, key=f"checkbox-{entry_data['ID']}-{step_index}"):
                 data = toggle_step_completion(data, entry_data["ID"], step_index)
             if completed_status:
                 st.markdown(f"<p style='color:green;'>Completed on {date}</p>", unsafe_allow_html=True)
+            
+            # Priority dropdown
+            new_priority = st.selectbox(
+                "Priority",
+                options=["Low", "Medium", "High"],
+                index=["Low", "Medium", "High"].index(priority),
+                key=f"priority-{entry_data['ID']}-{step_index}"
+            )
+            if st.button("Update Priority", key=f"update_priority-{entry_data['ID']}-{step_index}"):
+                data = update_priority(data, entry_data["ID"], step_index, new_priority)
+                st.experimental_rerun()
         
         # Edit button and functionality
         edit_key = f"edit-{entry_data['ID']}"
@@ -144,9 +164,10 @@ with st.expander("Add New Title and Steps", expanded=False):
 # Summary of tasks
 completed_tasks = sum([sum(completed) for completed in data["Completed"]])
 total_tasks = sum([len(steps) for steps in data["Steps"]])
-st.markdown(f"<h3 style='font-size:20px;'>Task Summary</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='font-size:20px;'>Task Summary</h3>", unsafe_allow_html=True)
 st.markdown(f"<p>Total tasks: {total_tasks}</p>", unsafe_allow_html=True)
 st.markdown(f"<p>Completed tasks: {completed_tasks}</p>", unsafe_allow_html=True)
 st.markdown(f"<p>Pending tasks: {total_tasks - completed_tasks}</p>", unsafe_allow_html=True)
 
 st.write("### Business Blueprint 101 - Organized and ready to go!")
+
