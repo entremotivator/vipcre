@@ -66,8 +66,96 @@ def delete_entry(data, id):
     save_data(data)
     return data
 
+# Function to add example projects
+def add_example_projects(data):
+    example_projects = [
+        {
+            "Title": "Develop Marketing Strategy",
+            "Steps": [
+                "Identify target audience.",
+                "Analyze market trends and competitors.",
+                "Create a unique value proposition.",
+                "Design marketing materials.",
+                "Set up online and offline marketing channels.",
+                "Develop a social media strategy.",
+                "Create a content marketing plan.",
+                "Allocate marketing budget.",
+                "Measure marketing effectiveness.",
+                "Adjust strategy based on performance."
+            ]
+        },
+        {
+            "Title": "Build Online Presence",
+            "Steps": [
+                "Design and launch a business website.",
+                "Set up social media profiles.",
+                "Create a content calendar.",
+                "Engage with potential customers online.",
+                "Optimize your website for search engines.",
+                "Develop a blog or news section.",
+                "Implement an email marketing strategy.",
+                "Run online advertising campaigns.",
+                "Monitor website traffic and engagement.",
+                "Update content regularly."
+            ]
+        },
+        {
+            "Title": "Implement Customer Feedback System",
+            "Steps": [
+                "Create a feedback collection system.",
+                "Design customer surveys.",
+                "Analyze customer feedback data.",
+                "Implement feedback-driven changes.",
+                "Communicate changes to customers.",
+                "Train staff on feedback handling.",
+                "Monitor feedback trends.",
+                "Adjust strategies based on feedback.",
+                "Track improvements and results.",
+                "Regularly update the feedback system."
+            ]
+        },
+        {
+            "Title": "Optimize Operational Efficiency",
+            "Steps": [
+                "Conduct a process audit.",
+                "Identify bottlenecks and inefficiencies.",
+                "Implement process improvements.",
+                "Automate repetitive tasks.",
+                "Enhance team communication.",
+                "Improve resource allocation.",
+                "Monitor process performance.",
+                "Adjust strategies for efficiency.",
+                "Provide staff training.",
+                "Regularly review and refine processes."
+            ]
+        },
+        {
+            "Title": "Expand Market Reach",
+            "Steps": [
+                "Research new market opportunities.",
+                "Develop a market entry strategy.",
+                "Identify key partnerships and alliances.",
+                "Create localized marketing campaigns.",
+                "Adapt products or services for new markets.",
+                "Establish distribution channels.",
+                "Monitor market response and feedback.",
+                "Adjust strategies as needed.",
+                "Scale operations to meet demand.",
+                "Evaluate market expansion success."
+            ]
+        }
+    ]
+
+    for project in example_projects:
+        data = add_title_steps(data, project["Title"], project["Steps"])
+    return data
+
 # Load data
 data = load_data()
+
+# Add example projects if not already present
+if not data["ID"]:
+    data = add_example_projects(data)
 
 # Title and Subheader
 st.title("Business Blueprint 101")
@@ -87,8 +175,9 @@ for index, entry_data in enumerate(zip(data["ID"], data["Title"], data["Steps"],
         for step_index, (step, is_completed) in enumerate(zip(steps, completed)):
             col1, col2 = st.columns([0.9, 0.1])
             with col1:
-                st.checkbox(step, value=is_completed, key=f"{id}-{step_index}", 
-                            on_change=lambda: update_completion(data, id, step_index, not is_completed))
+                if st.checkbox(step, value=is_completed, key=f"{id}-{step_index}", 
+                            on_change=lambda id=id, step_index=step_index: update_completion(data, id, step_index, not is_completed)):
+                    st.experimental_rerun()
             with col2:
                 st.markdown(f"{'✅' if is_completed else '❌'}")
         
@@ -133,3 +222,4 @@ st.markdown(f"**Pending tasks:** {total_tasks - completed_tasks}")
 st.progress(completed_tasks / total_tasks if total_tasks > 0 else 0)
 
 st.write("### Business Blueprint 101 - Organized and ready to go!")
+
