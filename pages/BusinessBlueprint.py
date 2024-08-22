@@ -21,12 +21,12 @@ def save_local_data(data):
     data.to_csv("local_data.csv", index=False)
 
 def add_title_steps(data, title, steps):
-    new_entry = {
-        "Title": title, 
-        "Steps": steps, 
-        "Completed": [False]*len(steps)
-    }
-    data = data.append(new_entry, ignore_index=True)
+    new_entry = pd.DataFrame({
+        "Title": [title], 
+        "Steps": [steps], 
+        "Completed": [[False]*len(steps)]
+    })
+    data = pd.concat([data, new_entry], ignore_index=True)
     save_local_data(data)
     return data
 
