@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import uuid
+from datetime import datetime
 
 # Initialize Streamlit app
 st.set_page_config(page_title="Business Blueprint 101", layout="wide")
@@ -14,9 +15,9 @@ st.markdown("<h3 style='font-size:24px;'>Organize, Prioritize, and Manage Your B
 @st.cache_data
 def get_local_data():
     if "local_data.csv" in os.listdir():
-        return pd.read_csv("local_data.csv", converters={"Steps": eval, "Completed": eval})
+        return pd.read_csv("local_data.csv", converters={"Steps": eval, "Completed": eval, "CompletionDates": eval})
     else:
-        return pd.DataFrame(columns=["ID", "Title", "Steps", "Completed"])
+        return pd.DataFrame(columns=["ID", "Title", "Steps", "Completed", "CompletionDates"])
 
 def save_local_data(data):
     data.to_csv("local_data.csv", index=False)
@@ -26,7 +27,8 @@ def add_title_steps(data, title, steps):
         "ID": [str(uuid.uuid4())], 
         "Title": [title], 
         "Steps": [steps], 
-        "Completed": [[False]*len(steps)]
+        "Completed": [[False]*len(steps)],
+        "CompletionDates": [[]*len(steps)]
     })
     data = pd.concat([data, new_entry], ignore_index=True)
     save_local_data(data)
@@ -37,6 +39,7 @@ def edit_title_steps(data, entry_id, updated_title, updated_steps):
     data.at[index, "Title"] = updated_title
     data.at[index, "Steps"] = updated_steps
     data.at[index, "Completed"] = [False]*len(updated_steps)  # Reset completion status
+    data.at[index, "CompletionDates"] = ['']*len(updated_steps)  # Reset completion dates
     save_local_data(data)
     return data
 
@@ -47,7 +50,12 @@ def delete_entry(data, entry_id):
 
 def toggle_step_completion(data, entry_id, step_index):
     index = data[data["ID"] == entry_id].index[0]
-    data.at[index, "Completed"][step_index] = not data.at[index, "Completed"][step_index]
+    if not data.at[index, "Completed"][step_index]:  # If the task is not completed
+        data.at[index, "Completed"][step_index] = True
+        data.at[index, "CompletionDates"][step_index] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    else:  # If the task is already completed
+        data.at[index, "Completed"][step_index] = False
+        data.at[index, "CompletionDates"][step_index] = ''
     save_local_data(data)
     return data
 
@@ -100,10 +108,14 @@ for entry_id, entry_data in data.iterrows():
         st.markdown("<h4 style='font-size:20px;'>Steps:</h4>", unsafe_allow_html=True)
         steps = entry_data["Steps"]
         completed = entry_data["Completed"]
-        for step_index, (step, completed_status) in enumerate(zip(steps, completed)):
+        completion_dates = entry_data["CompletionDates"]
+        
+        for step_index, (step, completed_status, date) in enumerate(zip(steps, completed, completion_dates)):
             checkbox_label = f"{step}"
             if st.checkbox(checkbox_label, value=completed_status, key=f"checkbox-{entry_data['ID']}-{step_index}"):
                 data = toggle_step_completion(data, entry_data["ID"], step_index)
+            if completed_status:
+                st.markdown(f"<p style='color:green;'>Completed on {date}</p>", unsafe_allow_html=True)
         
         # Edit button and functionality
         edit_key = f"edit-{entry_data['ID']}"
@@ -128,5 +140,13 @@ with st.expander("Add New Title and Steps", expanded=False):
     if st.button("Add Title and Steps"):
         data = add_title_steps(data, new_title, new_steps.split("\n"))
         st.experimental_rerun()
+
+# Summary of tasks
+completed_tasks = sum([sum(completed) for completed in data["Completed"]])
+total_tasks = sum([len(steps) for steps in data["Steps"]])
+st.markdown(f"<h3 style='font-size:20px;'>Task Summary</h3>", unsafe_allow_html=True)
+st.markdown(f"<p>Total tasks: {total_tasks}</p>", unsafe_allow_html=True)
+st.markdown(f"<p>Completed tasks: {completed_tasks}</p>", unsafe_allow_html=True)
+st.markdown(f"<p>Pending tasks: {total_tasks - completed_tasks}</p>", unsafe_allow_html=True)
 
 st.write("### Business Blueprint 101 - Organized and ready to go!")
