@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
+# Set Streamlit to use the full width of the page
+st.set_page_config(layout="wide")
+
 # Sample data to prepopulate the DataFrame with 10 clients
 sample_data = {
     'Client Name': ['John Doe', 'Jane Smith', 'Michael Johnson', 'Emily Davis', 'Chris Brown', 
@@ -63,9 +66,9 @@ with st.form("add_letter_form"):
             add_letter(client_name, letter_subject, date_sent, status, to_do_list, notes, dispute_type, credit_bureau, priority)
             st.success("Letter and tasks added successfully!")
 
-# Display the DataFrame
+# Display the DataFrame in a full-screen mode
 st.header("Tracking Table")
-st.dataframe(st.session_state.df)
+st.dataframe(st.session_state.df, use_container_width=True)
 
 # Export data to CSV
 st.header("Export Data")
@@ -82,8 +85,5 @@ if uploaded_file:
 
 # Display the DataFrame again after possible changes
 st.header("Current Data Overview")
-st.dataframe(st.session_state.df)
+st.dataframe(st.session_state.df, use_container_width=True)
 
-# Display the DataFrame
-st.header("Current Data Overview")
-st.dataframe(st.session_state.df)
