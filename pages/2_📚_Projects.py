@@ -217,21 +217,31 @@ example_entries = [
 
 # Display Titles with Steps
 for entry_id, entry_data in enumerate(example_entries):
-    entry_key = f"title-{entry_id}"
-    with st.expander(f"<h1 style='font-size: 40px;'>{entry_data['Title']}</h1>", expanded=False, unsafe_allow_html=True):
-        st.write("### Steps:")
-        for step in entry_data["Steps"]:
-            st.write(f"- {step}")
-        
-        # Edit button and functionality
-        if st.button("Edit", key=f"edit-{entry_id}"):
-            updated_title = st.text_input("Title", value=entry_data["Title"])
-            updated_steps = st.text_area("Steps (one per line)", value="\n".join(entry_data["Steps"]))
-            if st.button("Save Changes", key=f"save-{entry_id}"):
-                edit_title_steps(entry_id, updated_title, updated_steps.split("\n"))
-                st.experimental_rerun()
-        
-        # Delete button and functionality
-        if st.button("Delete", key=f"delete-{entry_id}"):
-            delete_entry(entry_id)
+    st.markdown(f"<h1 style='font-size: 40px;'>{entry_data['Title']}</h1>", unsafe_allow_html=True)
+    st.write("### Steps:")
+    for step in entry_data["Steps"]:
+        st.write(f"- {step}")
+
+    # Edit button and functionality
+    if st.button(f"Edit {entry_id}", key=f"edit-{entry_id}"):
+        updated_title = st.text_input("Title", value=entry_data["Title"], key=f"title-{entry_id}")
+        updated_steps = st.text_area("Steps (one per line)", value="\n".join(entry_data["Steps"]), key=f"steps-{entry_id}")
+        if st.button("Save Changes", key=f"save-{entry_id}"):
+            edit_title_steps(entry_id, updated_title, updated_steps.split("\n"))
             st.experimental_rerun()
+
+    # Delete button and functionality
+    if st.button(f"Delete {entry_id}", key=f"delete-{entry_id}"):
+        delete_entry(entry_id)
+        st.experimental_rerun()
+
+# Functionality to add a new title with steps
+with st.expander("Add New Title and Steps", expanded=False):
+    title = st.text_input("New Title")
+    steps = st.text_area("Steps (one per line)")
+    if st.button("Add Title and Steps"):
+        add_title_steps(title, steps.split("\n"))
+        st.experimental_rerun()
+
+st.write("### Credit Building Blueprint - Organized and Ready to Go!")
+
