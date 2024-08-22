@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import uuid
 from datetime import datetime
+import json
 
 # Initialize Streamlit app
 st.set_page_config(page_title="Business Blueprint 101", layout="wide")
@@ -12,14 +13,25 @@ st.markdown("<h1 style='font-size:36px;'>Business Blueprint 101 - From Start Up 
 st.markdown("<h3 style='font-size:24px;'>Organize, Prioritize, and Manage Your Business Setup Effectively!</h3>", unsafe_allow_html=True)
 
 # Local Database
-@st.cache_data
 def get_local_data():
     if "local_data.csv" in os.listdir():
-        return pd.read_csv("local_data.csv", converters={"Steps": eval, "Completed": eval, "CompletionDates": eval, "Priorities": eval})
+        # Read the CSV file
+        df = pd.read_csv("local_data.csv")
+        # Convert string representations of lists back to lists
+        df["Steps"] = df["Steps"].apply(lambda x: json.loads(x))
+        df["Completed"] = df["Completed"].apply(lambda x: json.loads(x))
+        df["CompletionDates"] = df["CompletionDates"].apply(lambda x: json.loads(x))
+        df["Priorities"] = df["Priorities"].apply(lambda x: json.loads(x))
+        return df
     else:
         return pd.DataFrame(columns=["ID", "Title", "Steps", "Completed", "CompletionDates", "Priorities"])
 
 def save_local_data(data):
+    # Convert lists to JSON strings for storage
+    data["Steps"] = data["Steps"].apply(lambda x: json.dumps(x))
+    data["Completed"] = data["Completed"].apply(lambda x: json.dumps(x))
+    data["CompletionDates"] = data["CompletionDates"].apply(lambda x: json.dumps(x))
+    data["Priorities"] = data["Priorities"].apply(lambda x: json.dumps(x))
     data.to_csv("local_data.csv", index=False)
 
 def add_title_steps(data, title, steps):
@@ -170,4 +182,5 @@ st.markdown(f"<p>Completed tasks: {completed_tasks}</p>", unsafe_allow_html=True
 st.markdown(f"<p>Pending tasks: {total_tasks - completed_tasks}</p>", unsafe_allow_html=True)
 
 st.write("### Business Blueprint 101 - Organized and ready to go!")
+
 
