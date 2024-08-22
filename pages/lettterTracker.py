@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from io import StringIO
 from datetime import datetime
 
 # Sample data to prepopulate the DataFrame with 10 clients
@@ -15,16 +14,14 @@ sample_data = {
     'To-Do List': ['Follow up in 2 weeks', 'Call client', 'Send additional documents', 'Review response', 'Prepare next letter',
                    'Update client on progress', 'Request more information', 'Prepare final report', 'Send follow-up email', 'Schedule review call'],
     'Notes': ['First letter sent', 'Requested additional info', 'Waiting for response', 'Resolved in favor of client', 'Letter sent, awaiting response',
-              'Client requested more information', 'Additional documents needed', 'Final report prepared', 'Follow-up email sent', 'Review call scheduled']
+              'Client requested more information', 'Additional documents needed', 'Final report prepared', 'Follow-up email sent', 'Review call scheduled'],
+    'Dispute Type': ['Credit Report', 'Identity Theft', 'Fraudulent Account', 'Incorrect Info', 'Duplicate Account', 
+                     'Credit Report', 'Identity Theft', 'Fraudulent Account', 'Incorrect Info', 'Duplicate Account'],
+    'Credit Bureau': ['Experian', 'TransUnion', 'Equifax', 'Experian', 'TransUnion', 
+                      'Equifax', 'Experian', 'TransUnion', 'Equifax', 'Experian'],
+    'Priority': ['High', 'Medium', 'Low', 'High', 'Medium', 
+                 'Low', 'High', 'Medium', 'Low', 'High']
 }
-
-# Additional fields for comprehensive tracking
-sample_data['Dispute Type'] = ['Credit Report', 'Identity Theft', 'Fraudulent Account', 'Incorrect Info', 'Duplicate Account', 
-                                'Credit Report', 'Identity Theft', 'Fraudulent Account', 'Incorrect Info', 'Duplicate Account']
-sample_data['Credit Bureau'] = ['Experian', 'TransUnion', 'Equifax', 'Experian', 'TransUnion', 
-                                 'Equifax', 'Experian', 'TransUnion', 'Equifax', 'Experian']
-sample_data['Priority'] = ['High', 'Medium', 'Low', 'High', 'Medium', 
-                           'Low', 'High', 'Medium', 'Low', 'High']
 
 # Initialize session state for the tracking DataFrame
 if 'df' not in st.session_state:
@@ -66,12 +63,9 @@ with st.form("add_letter_form"):
             add_letter(client_name, letter_subject, date_sent, status, to_do_list, notes, dispute_type, credit_bureau, priority)
             st.success("Letter and tasks added successfully!")
 
-# Display the DataFrame in an editable format
+# Display the DataFrame
 st.header("Tracking Table")
-edited_df = st.experimental_data_editor(st.session_state.df, num_rows="dynamic")
-
-# Save changes made in the editable DataFrame
-st.session_state.df = edited_df
+st.dataframe(st.session_state.df)
 
 # Export data to CSV
 st.header("Export Data")
@@ -85,6 +79,10 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.session_state.df = df
     st.success("Data imported successfully!")
+
+# Display the DataFrame again after possible changes
+st.header("Current Data Overview")
+st.dataframe(st.session_state.df)
 
 # Display the DataFrame
 st.header("Current Data Overview")
