@@ -4,11 +4,11 @@ import os
 import uuid
 
 # Initialize Streamlit app
-st.set_page_config(page_title="Business Blueprint 101")
+st.set_page_config(page_title="Business Blueprint 101", layout="wide")
 
 # Title and Subheader
-st.title("***Business Blueprint 101 - From Start Up to Funding***")
-st.subheader("Organize, Prioritize, and Manage Your Business Setup Effectively!")
+st.markdown("<h1 style='font-size:36px;'>Business Blueprint 101 - From Start Up to Funding</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='font-size:24px;'>Organize, Prioritize, and Manage Your Business Setup Effectively!</h3>", unsafe_allow_html=True)
 
 # Local Database
 @st.cache_data
@@ -97,7 +97,7 @@ for entry in additional_entries:
 for entry_id, entry_data in data.iterrows():
     entry_key = f"title-{entry_data['ID']}"
     with st.expander(entry_data["Title"], expanded=False):
-        st.write("### Steps:")
+        st.markdown("<h4 style='font-size:20px;'>Steps:</h4>", unsafe_allow_html=True)
         steps = entry_data["Steps"]
         completed = entry_data["Completed"]
         for step_index, (step, completed_status) in enumerate(zip(steps, completed)):
@@ -106,24 +106,27 @@ for entry_id, entry_data in data.iterrows():
                 data = toggle_step_completion(data, entry_data["ID"], step_index)
         
         # Edit button and functionality
-        if st.button("Edit", key=f"edit-{entry_data['ID']}"):
+        edit_key = f"edit-{entry_data['ID']}"
+        if st.button("Edit", key=edit_key):
             updated_title = st.text_input("Title", value=entry_data["Title"])
-            updated_steps = st.text_area("Steps (one per line)", value="\n".join(steps))
-            if st.button("Save Changes", key=f"save-{entry_data['ID']}"):
+            updated_steps = st.text_area("Steps (one per line)", value="\n".join(steps), height=300)
+            save_key = f"save-{entry_data['ID']}"
+            if st.button("Save Changes", key=save_key):
                 data = edit_title_steps(data, entry_data["ID"], updated_title, updated_steps.split("\n"))
                 st.experimental_rerun()
         
         # Delete button and functionality
-        if st.button("Delete", key=f"delete-{entry_data['ID']}"):
+        delete_key = f"delete-{entry_data['ID']}"
+        if st.button("Delete", key=delete_key):
             data = delete_entry(data, entry_data["ID"])
             st.experimental_rerun()
 
 # Functionality to add a new title with steps
 with st.expander("Add New Title and Steps", expanded=False):
-    title = st.text_input("New Title")
-    steps = st.text_area("Steps (one per line)")
+    new_title = st.text_input("New Title")
+    new_steps = st.text_area("Steps (one per line)", height=300)
     if st.button("Add Title and Steps"):
-        data = add_title_steps(data, title, steps.split("\n"))
+        data = add_title_steps(data, new_title, new_steps.split("\n"))
         st.experimental_rerun()
 
 st.write("### Business Blueprint 101 - Organized and ready to go!")
