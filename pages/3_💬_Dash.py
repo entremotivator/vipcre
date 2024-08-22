@@ -2,229 +2,319 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import sqlite3
-import base64
-from io import BytesIO
-import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
 
-# Connect to SQLite Database (persistent storage)
-conn = sqlite3.connect('credit_data.db')
-c = conn.cursor()
-
-# Create a table if not exists
-c.execute('''CREATE TABLE IF NOT EXISTS credit_info (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                account_id TEXT,
-                date TEXT,
-                credit_score INTEGER,
-                credit_utilization REAL,
-                total_debt INTEGER,
-                monthly_payments INTEGER,
-                income INTEGER,
-                new_credit_accounts INTEGER,
-                payment_history TEXT,
-                credit_limits INTEGER
-            )''')
-conn.commit()
-
-# Generate and insert sample data
-def generate_sample_data(account_id):
+# Generate sample data
+def generate_sample_data():
+    np.random.seed(42)
     dates = pd.date_range(start="2024-01-01", periods=12, freq='M')
-    data = []
-    
-    for date in dates:
-        entry = (account_id, date.strftime('%Y-%m-%d'),
-                 np.random.randint(650, 850),
-                 np.random.uniform(0.2, 0.9),
-                 np.random.randint(1000, 5000),
-                 np.random.randint(100, 1000),
-                 np.random.randint(3000, 7000),
-                 np.random.randint(0, 3),
-                 np.random.choice(["On Time", "Late"], p=[0.9, 0.1]),
-                 np.random.randint(5000, 20000))
-        data.append(entry)
-    
-    c.executemany('''INSERT INTO credit_info (
-                        account_id, date, credit_score, credit_utilization, total_debt,
-                        monthly_payments, income, new_credit_accounts, payment_history, credit_limits
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', data)
-    conn.commit()
-
-# Load data from the database
-def load_data(account_id):
-    query = f"SELECT * FROM credit_info WHERE account_id = '{account_id}'"
-    df = pd.read_sql(query, conn)
-    df['Date'] = pd.to_datetime(df['date'])
-    df['Debt-to-Income Ratio'] = df['total_debt'] / df['income']
+    data = {
+        "Date": dates,
+        "Credit Score": np.random.randint(650, 850, size=12),
+        "Credit Utilization": np.random.uniform(0.2, 0.9, size=12),
+        "Total Debt": np.random.randint(1000, 5000, size=12),
+        "Monthly Payments": np.random.randint(100, 1000, size=12),
+        "Income": np.random.randint(3000, 7000, size=12),
+        "New Credit Accounts": np.random.randint(0, 3, size=12),
+        "Credit Limits": np.random.randint(5000, 20000, size=12),
+        "Payment History": np.random.choice(["On Time", "Late"], size=12, p=[0.9, 0.1]),
+        "Loan Balances": np.random.randint(1000, 5000, size=12),
+        "Account Age (Months)": np.random.randint(1, 120, size=12),
+        "Recent Transactions": np.random.randint(0, 10, size=12),
+        "Upcoming Payments": np.random.randint(50, 500, size=12),
+        "Credit Inquiries": np.random.randint(0, 5, size=12),
+        "Credit Report Summary": np.random.choice(["Good", "Average", "Poor"], size=12),
+    }
+    df = pd.DataFrame(data)
+    df["Debt-to-Income Ratio"] = df["Total Debt"] / df["Income"]
     return df
 
-# Initialize and combine data for multiple accounts
-account_ids = [f"Account {i}" for i in range(1, 4)]
-for account_id in account_ids:
-    if not c.execute(f"SELECT 1 FROM credit_info WHERE account_id = '{account_id}'").fetchone():
-        generate_sample_data(account_id)
+df = generate_sample_data()
 
-# Sidebar for account selection and navigation
+# Streamlit app
+st.title("Credit Management Dashboard")
+
+# Sidebar for navigation
 st.sidebar.title("Navigation")
-selected_account = st.sidebar.selectbox("Select Account", account_ids)
 page = st.sidebar.radio("Go to", [
     "Credit Score Overview",
     "Credit Utilization",
     "Payment History",
+    "Credit Report Summary",
+    "Credit Inquiries",
+    "Credit Limits",
     "Debt-to-Income Ratio",
+    "Loan and Credit Card Balances",
+    "Account Age",
     "Monthly Payments",
+    "Credit Accounts Breakdown",
+    "Top 5 Highest Balances",
+    "Top 5 Recent Transactions",
+    "Upcoming Payments",
+    "Credit Utilization by Account Type",
+    "Average Payment History",
+    "Credit Score Trend",
+    "Monthly Spending Trend",
+    "Credit Score vs. Credit Utilization",
+    "Debt Repayment Schedule",
     "New Credit Accounts",
-    "Summary Report",
-    "Edit Credit Info"
+    "Credit Score Impact Simulation",
+    "Debt Reduction Plan",
+    "Credit Score Improvement Tips",
+    "Alerts and Recommendations",
+    "Edit Credit Info",
+    "Export Data"
 ])
-
-# Load filtered data for the selected account
-df_filtered = load_data(selected_account)
-
-# Export data to CSV
-def export_data(df):
-    csv = df.to_csv(index=False)
-    b64 = base64.b64encode(csv.encode()).decode()
-    href = f'<a href="data:file/csv;base64,{b64}" download="{selected_account}_credit_data.csv">Download {selected_account} Credit Data</a>'
-    return href
-
-# Generate plots for trend analysis
-def plot_trend(df, column_name, title, y_axis_label):
-    fig = px.line(df, x="Date", y=column_name, title=title)
-    fig.update_layout(yaxis_title=y_axis_label, xaxis_title="Date")
-    st.plotly_chart(fig)
-
-# Display summary report
-def display_summary_report(df):
-    st.subheader("Summary Report")
-    summary_stats = df.describe().T
-    st.dataframe(summary_stats)
-
-    st.subheader("Correlation Matrix")
-    corr_matrix = df.corr()
-    fig, ax = plt.subplots()
-    cax = ax.matshow(corr_matrix, cmap='coolwarm')
-    plt.xticks(range(len(corr_matrix.columns)), corr_matrix.columns, rotation=90)
-    plt.yticks(range(len(corr_matrix.columns)), corr_matrix.columns)
-    fig.colorbar(cax)
-    st.pyplot(fig)
 
 # Display selected page
 if page == "Credit Score Overview":
     st.subheader("Credit Score Overview")
-    st.write(f"Current Credit Score for {selected_account}: {df_filtered['credit_score'].iloc[-1]}")
-    plot_trend(df_filtered, 'credit_score', 'Credit Score Over Time', 'Credit Score')
-
-    st.subheader("Credit Score Trend Analysis")
-    trend = "increasing" if df_filtered['credit_score'].pct_change().mean() > 0 else "decreasing"
+    st.write(f"Current Credit Score: {df['Credit Score'].iloc[-1]}")
+    st.line_chart(df[['Date', 'Credit Score']].set_index('Date'))
+    
+    # Detailed Analysis
+    trend = "increasing" if df['Credit Score'].pct_change().mean() > 0 else "decreasing"
     st.write(f"Overall trend: {trend}")
-
-    st.subheader("Edit Credit Score")
-    index_to_edit = st.number_input("Select Index (0-11)", min_value=0, max_value=11, value=0, key='score_index')
-    new_score = st.number_input("Enter New Credit Score", min_value=300, max_value=850, value=int(df_filtered['credit_score'].iloc[index_to_edit]), key='new_score')
-    if st.button("Update Credit Score"):
-        c.execute('''UPDATE credit_info SET credit_score = ? WHERE id = ?''',
-                  (new_score, df_filtered['id'].iloc[index_to_edit]))
-        conn.commit()
-        st.success(f"Credit Score updated for {df_filtered['Date'].iloc[index_to_edit]}")
+    st.write("Ensure your credit score remains in good health by following the improvement tips on the relevant page.")
+    st.write("### Insights:")
+    st.write("A higher credit score generally reflects a better credit history and lower credit risk.")
 
 elif page == "Credit Utilization":
     st.subheader("Credit Utilization")
-    plot_trend(df_filtered, 'credit_utilization', 'Credit Utilization Over Time', 'Credit Utilization')
-
-    avg_utilization = df_filtered['credit_utilization'].mean()
+    st.bar_chart(df[['Date', 'Credit Utilization']].set_index('Date'))
+    
+    # Utilization Analysis
+    avg_utilization = df['Credit Utilization'].mean()
     st.write(f"Average Credit Utilization: {avg_utilization:.2%}")
     st.write("A utilization rate below 30% is generally recommended.")
-
-    st.subheader("Edit Credit Utilization")
-    index_to_edit = st.number_input("Select Index (0-11)", min_value=0, max_value=11, value=0, key='util_index')
-    new_utilization = st.slider("Enter New Credit Utilization", min_value=0.0, max_value=1.0, value=float(df_filtered['credit_utilization'].iloc[index_to_edit]), key='new_utilization')
-    if st.button("Update Credit Utilization"):
-        c.execute('''UPDATE credit_info SET credit_utilization = ? WHERE id = ?''',
-                  (new_utilization, df_filtered['id'].iloc[index_to_edit]))
-        conn.commit()
-        st.success(f"Credit Utilization updated for {df_filtered['Date'].iloc[index_to_edit]}")
+    st.write("### Insights:")
+    st.write("Keeping your credit utilization low can positively impact your credit score.")
 
 elif page == "Payment History":
     st.subheader("Payment History")
-    st.write(df_filtered[['Date', 'payment_history']].set_index('Date'))
-
-    late_payments = df_filtered[df_filtered['payment_history'] == "Late"].shape[0]
+    st.write(df[['Date', 'Payment History']].set_index('Date'))
+    
+    # Payment History Analysis
+    late_payments = df[df['Payment History'] == "Late"].shape[0]
     st.write(f"Number of Late Payments: {late_payments}")
+    st.write("### Insights:")
+    st.write("Timely payments are crucial for maintaining a good credit score. Address any late payments promptly.")
 
-    st.subheader("Edit Payment History")
-    index_to_edit = st.number_input("Select Index (0-11)", min_value=0, max_value=11, value=0, key='history_index')
-    new_history = st.selectbox("Select Payment History", ["On Time", "Late"], index=0 if df_filtered['payment_history'].iloc[index_to_edit] == "On Time" else 1, key='new_history')
-    if st.button("Update Payment History"):
-        c.execute('''UPDATE credit_info SET payment_history = ? WHERE id = ?''',
-                  (new_history, df_filtered['id'].iloc[index_to_edit]))
-        conn.commit()
-        st.success(f"Payment History updated for {df_filtered['Date'].iloc[index_to_edit]}")
+elif page == "Credit Report Summary":
+    st.subheader("Credit Report Summary")
+    summary_counts = df['Credit Report Summary'].value_counts()
+    st.bar_chart(summary_counts)
+    st.write("Review your credit report summary for a quick overview of your credit standing.")
+    st.write("### Insights:")
+    st.write("A good credit report summary indicates strong credit health.")
+
+elif page == "Credit Inquiries":
+    st.subheader("Credit Inquiries")
+    st.line_chart(df[['Date', 'Credit Inquiries']].set_index('Date'))
+    
+    # Detailed Analysis
+    total_inquiries = df['Credit Inquiries'].sum()
+    st.write(f"Total Credit Inquiries: {total_inquiries}")
+    st.write("### Insights:")
+    st.write("Frequent credit inquiries can negatively affect your credit score. Limit new credit applications.")
+
+elif page == "Credit Limits":
+    st.subheader("Credit Limits")
+    st.line_chart(df[['Date', 'Credit Limits']].set_index('Date'))
+    st.write("### Insights:")
+    st.write("Higher credit limits can improve your credit utilization ratio if managed responsibly.")
 
 elif page == "Debt-to-Income Ratio":
     st.subheader("Debt-to-Income Ratio")
-    plot_trend(df_filtered, 'Debt-to-Income Ratio', 'Debt-to-Income Ratio Over Time', 'Debt-to-Income Ratio')
-
+    st.line_chart(df[['Date', 'Debt-to-Income Ratio']].set_index('Date'))
+    
+    # Ratio Interpretation
     st.write("A lower debt-to-income ratio indicates better financial health.")
-    high_ratio = df_filtered['Debt-to-Income Ratio'].max()
+    high_ratio = df['Debt-to-Income Ratio'].max()
     st.write(f"Highest Recorded Ratio: {high_ratio:.2%}")
+    st.write("### Insights:")
+    st.write("Maintaining a low debt-to-income ratio is essential for financial stability.")
 
-    st.subheader("Edit Debt and Income")
-    index_to_edit = st.number_input("Select Index (0-11)", min_value=0, max_value=11, value=0, key='debt_index')
-    new_debt = st.number_input("Enter New Total Debt", min_value=0, max_value=100000, value=int(df_filtered['total_debt'].iloc[index_to_edit]), key='new_debt')
-    new_income = st.number_input("Enter New Income", min_value=0, max_value=100000, value=int(df_filtered['income'].iloc[index_to_edit]), key='new_income')
-    if st.button("Update Debt and Income"):
-        c.execute('''UPDATE credit_info SET total_debt = ?, income = ? WHERE id = ?''',
-                  (new_debt, new_income, df_filtered['id'].iloc[index_to_edit]))
-        conn.commit()
-        st.success(f"Debt and Income updated for {df_filtered['Date'].iloc[index_to_edit]}")
+elif page == "Loan and Credit Card Balances":
+    st.subheader("Loan and Credit Card Balances")
+    st.line_chart(df[['Date', 'Loan Balances']].set_index('Date'))
+    st.write("### Insights:")
+    st.write("Regularly review your loan and credit card balances to manage debts effectively.")
+
+elif page == "Account Age":
+    st.subheader("Account Age")
+    st.line_chart(df[['Date', 'Account Age (Months)']].set_index('Date'))
+    st.write("### Insights:")
+    st.write("A longer account age generally contributes to a better credit score by demonstrating a stable credit history.")
 
 elif page == "Monthly Payments":
     st.subheader("Monthly Payments")
-    plot_trend(df_filtered, 'monthly_payments', 'Monthly Payments Over Time', 'Monthly Payments')
+    st.line_chart(df[['Date', 'Monthly Payments']].set_index('Date'))
+    st.write("### Insights:")
+    st.write("Track your monthly payments to ensure you stay within your budget and avoid missed payments.")
 
-    avg_payments = df_filtered['monthly_payments'].mean()
-    st.write(f"Average Monthly Payments: ${avg_payments:.2f}")
+elif page == "Credit Accounts Breakdown":
+    st.subheader("Credit Accounts Breakdown")
+    account_types = df['Credit Report Summary'].value_counts()
+    st.bar_chart(account_types)
+    st.write("### Insights:")
+    st.write("Understanding the breakdown of your credit accounts helps in managing and optimizing your credit profile.")
 
-    st.subheader("Edit Monthly Payments")
-    index_to_edit = st.number_input("Select Index (0-11)", min_value=0, max_value=11, value=0, key='payment_index')
-    new_payment = st.number_input("Enter New Monthly Payment", min_value=0, max_value=10000, value=int(df_filtered['monthly_payments'].iloc[index_to_edit]), key='new_payment')
-    if st.button("Update Monthly Payment"):
-        c.execute('''UPDATE credit_info SET monthly_payments = ? WHERE id = ?''',
-                  (new_payment, df_filtered['id'].iloc[index_to_edit]))
-        conn.commit()
-        st.success(f"Monthly Payment updated for {df_filtered['Date'].iloc[index_to_edit]}")
+elif page == "Top 5 Highest Balances":
+    st.subheader("Top 5 Highest Balances")
+    top_balances = df.nlargest(5, 'Loan Balances')
+    st.write(top_balances[['Date', 'Loan Balances']])
+    st.write("### Insights:")
+    st.write("Identify and manage accounts with the highest balances to reduce your overall debt burden.")
+
+elif page == "Top 5 Recent Transactions":
+    st.subheader("Top 5 Recent Transactions")
+    top_transactions = df.nlargest(5, 'Recent Transactions')
+    st.write(top_transactions[['Date', 'Recent Transactions']])
+    st.write("### Insights:")
+    st.write("Monitoring recent transactions can help in understanding spending patterns and adjusting budgeting strategies.")
+
+elif page == "Upcoming Payments":
+    st.subheader("Upcoming Payments")
+    st.line_chart(df[['Date', 'Upcoming Payments']].set_index('Date'))
+    st.write("### Insights:")
+    st.write("Plan for upcoming payments to avoid late fees and manage your finances efficiently.")
+
+elif page == "Credit Utilization by Account Type":
+    st.subheader("Credit Utilization by Account Type")
+    account_types = ['Credit Card', 'Loan', 'Mortgage']
+    utilization_by_type = df.groupby('Credit Report Summary')['Credit Utilization'].mean()
+    st.bar_chart(utilization_by_type)
+    st.write("### Insights:")
+    st.write("Analyze credit utilization by account type to understand how different types of credit impact your overall utilization.")
+
+elif page == "Average Payment History":
+    st.subheader("Average Payment History")
+    payment_history_avg = df['Payment History'].value_counts(normalize=True) * 100
+    st.bar_chart(payment_history_avg)
+    st.write("### Insights:")
+    st.write("Maintaining an average of timely payments is crucial for a positive credit history.")
+
+elif page == "Credit Score Trend":
+    st.subheader("Credit Score Trend")
+    st.line_chart(df[['Date', 'Credit Score']].set_index('Date'))
+    st.write("### Insights:")
+    st.write("A trend line helps visualize improvements or declines in your credit score over time.")
+
+elif page == "Monthly Spending Trend":
+    st.subheader("Monthly Spending Trend")
+    st.line_chart(df[['Date', 'Monthly Payments']].set_index('Date'))
+    st.write("### Insights:")
+    st.write("Monitor monthly spending to ensure you stay within budget and avoid unnecessary debt.")
+
+elif page == "Credit Score vs. Credit Utilization":
+    st.subheader("Credit Score vs. Credit Utilization")
+    fig = px.scatter(df, x='Credit Utilization', y='Credit Score', trendline='ols')
+    st.plotly_chart(fig)
+    st.write("### Insights:")
+    st.write("Visualizing the relationship between credit utilization and credit score can help in understanding their correlation.")
+
+elif page == "Debt Repayment Schedule":
+    st.subheader("Debt Repayment Schedule")
+    st.write("Create a repayment schedule to track and manage your debt reduction plans.")
+    # Simulated example
+    repayment_schedule = {
+        "Debt Type": ["Credit Card", "Loan", "Mortgage"],
+        "Current Balance": [5000, 15000, 200000],
+        "Monthly Payment": [100, 300, 1500],
+        "Remaining Months": [50, 60, 180]
+    }
+    repayment_df = pd.DataFrame(repayment_schedule)
+    st.write(repayment_df)
+    st.write("### Insights:")
+    st.write("Effective debt repayment scheduling can help you achieve financial goals and reduce overall debt.")
 
 elif page == "New Credit Accounts":
     st.subheader("New Credit Accounts")
-    plot_trend(df_filtered, 'new_credit_accounts', 'New Credit Accounts Over Time', 'New Credit Accounts')
+    st.bar_chart(df[['Date', 'New Credit Accounts']].set_index('Date'))
+    st.write("### Insights:")
+    st.write("Monitor new credit accounts to ensure that they are managed well and do not negatively impact your credit score.")
 
-    total_new_accounts = df_filtered['new_credit_accounts'].sum()
-    st.write(f"Total New Credit Accounts: {total_new_accounts}")
+elif page == "Credit Score Impact Simulation":
+    st.subheader("Credit Score Impact Simulation")
+    st.write("Simulate how changes in your credit behavior could impact your credit score.")
+    # Interactive simulation
+    score_change = st.slider("Projected Credit Score Change", min_value=-100, max_value=100, value=0)
+    projected_score = df['Credit Score'].iloc[-1] + score_change
+    st.write(f"Projected Credit Score: {projected_score}")
+    st.write("### Insights:")
+    st.write("Understand how different scenarios affect your credit score to make informed financial decisions.")
 
-    st.subheader("Edit New Credit Accounts")
-    index_to_edit = st.number_input("Select Index (0-11)", min_value=0, max_value=11, value=0, key='accounts_index')
-    new_accounts = st.number_input("Enter New Number of Accounts", min_value=0, max_value=10, value=int(df_filtered['new_credit_accounts'].iloc[index_to_edit]), key='new_accounts')
-    if st.button("Update New Credit Accounts"):
-        c.execute('''UPDATE credit_info SET new_credit_accounts = ? WHERE id = ?''',
-                  (new_accounts, df_filtered['id'].iloc[index_to_edit]))
-        conn.commit()
-        st.success(f"New Credit Accounts updated for {df_filtered['Date'].iloc[index_to_edit]}")
+elif page == "Debt Reduction Plan":
+    st.subheader("Debt Reduction Plan")
+    st.write("Plan and track your progress in reducing debt.")
+    # Sample debt reduction plan
+    reduction_plan = {
+        "Debt Type": ["Credit Card", "Loan", "Mortgage"],
+        "Current Balance": [5000, 15000, 200000],
+        "Monthly Payment": [100, 300, 1500],
+        "Debt Reduction Plan": ["Pay Extra", "Consolidate", "Refinance"]
+    }
+    plan_df = pd.DataFrame(reduction_plan)
+    st.write(plan_df)
+    st.write("### Insights:")
+    st.write("Effective debt reduction strategies can improve your financial health and credit score.")
 
-elif page == "Summary Report":
-    display_summary_report(df_filtered)
+elif page == "Credit Score Improvement Tips":
+    st.subheader("Credit Score Improvement Tips")
+    st.write("""
+        **1. Pay Bills On Time:** Timely payments are crucial for a healthy credit score.
+        **2. Reduce Credit Utilization:** Keep your credit utilization below 30% of your credit limit.
+        **3. Avoid Opening Too Many Accounts:** Each credit inquiry can lower your score temporarily.
+        **4. Regularly Check Your Credit Report:** Ensure there are no errors that might negatively affect your score.
+        **5. Maintain a Healthy Credit Mix:** Having a mix of credit types (e.g., credit cards, loans) can be beneficial.
+    """)
 
-elif page == "Edit Credit Info":
-    st.subheader("Edit Credit Info")
-    metric_to_edit = st.selectbox("Select Metric", df_filtered.columns[3:])
-    index_to_edit = st.number_input(f"Select Index (0-{len(df_filtered) - 1})", min_value=0, max_value=len(df_filtered) - 1, value=0, key='edit_info_index')
-    new_value = st.number_input(f"Enter New Value for {metric_to_edit}", value=float(df_filtered[metric_to_edit].iloc[index_to_edit]))
+elif page == "Alerts and Recommendations":
+    st.subheader("Alerts and Recommendations")
+    st.write("Based on your data, here are some alerts and recommendations:")
+    if df['Credit Utilization'].iloc[-1] > 0.3:
+        st.warning("Your credit utilization is high. Consider paying down your balances.")
+    if df['Payment History'].iloc[-1] == "Late":
+        st.warning("You have recent late payments. Ensure you pay on time to avoid further impacts.")
     
-    if st.button("Update Credit Info"):
-        c.execute(f'''UPDATE credit_info SET {metric_to_edit} = ? WHERE id = ?''',
-                  (new_value, df_filtered['id'].iloc[index_to_edit]))
-        conn.commit()
-        st.success(f"{metric_to_edit} updated for {selected_account} on {df_filtered['Date'].iloc[index_to_edit]}")
+elif page == "Edit Credit Info":
+    st.subheader("Edit Credit Information")
+    st.write("Update your credit data directly.")
+    
+    # Forms for editing
+    with st.form(key='edit_form'):
+        date_index = st.number_input("Select Date Index", min_value=0, max_value=len(df)-1, value=0)
+        credit_score = st.number_input("Credit Score", min_value=300, max_value=850, value=int(df.loc[date_index, 'Credit Score']))
+        credit_utilization = st.slider("Credit Utilization", min_value=0.0, max_value=1.0, value=df.loc[date_index, 'Credit Utilization'])
+        total_debt = st.number_input("Total Debt", min_value=0, max_value=100000, value=int(df.loc[date_index, 'Total Debt']))
+        income = st.number_input("Income", min_value=0, max_value=100000, value=int(df.loc[date_index, 'Income']))
+        monthly_payments = st.number_input("Monthly Payments", min_value=0, max_value=10000, value=int(df.loc[date_index, 'Monthly Payments']))
+        new_credit_accounts = st.number_input("New Credit Accounts", min_value=0, max_value=10, value=int(df.loc[date_index, 'New Credit Accounts']))
+        credit_limits = st.number_input("Credit Limits", min_value=5000, max_value=20000, value=int(df.loc[date_index, 'Credit Limits']))
+        payment_history = st.selectbox("Payment History", ["On Time", "Late"], index=0 if df.loc[date_index, 'Payment History'] == "On Time" else 1)
+        
+        submit_button = st.form_submit_button(label='Update Information')
+        
+        if submit_button:
+            df.loc[date_index, 'Credit Score'] = credit_score
+            df.loc[date_index, 'Credit Utilization'] = credit_utilization
+            df.loc[date_index, 'Total Debt'] = total_debt
+            df.loc[date_index, 'Income'] = income
+            df.loc[date_index, 'Monthly Payments'] = monthly_payments
+            df.loc[date_index, 'New Credit Accounts'] = new_credit_accounts
+            df.loc[date_index, 'Credit Limits'] = credit_limits
+            df.loc[date_index, 'Payment History'] = payment_history
+            df.loc[date_index, 'Debt-to-Income Ratio'] = total_debt / income if income != 0 else 0
+            st.success(f"Information updated for {df.loc[date_index, 'Date']}")
 
-# Display export option in sidebar
-st.sidebar.markdown(export_data(df_filtered), unsafe_allow_html=True)
+elif page == "Export Data":
+    st.subheader("Export Data")
+    st.write("Download your credit data in CSV format.")
+    csv = df.to_csv(index=False)
+    st.download_button(
+        label="Download CSV",
+        data=csv,
+        file_name='credit_data.csv',
+        mime='text/csv'
+    )
