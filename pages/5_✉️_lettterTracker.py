@@ -7,6 +7,10 @@ st.set_page_config(layout="wide")
 
 st.sidebar.image("logooo.png", use_column_width=True)
 
+if "authenticated" not in st.session_state or not st.session_state.authenticated:
+    st.error("You need to log in to access this page.")
+    st.stop()
+    
 # Sample data to prepopulate the DataFrame with 10 clients
 sample_data = {
     'Client Name': ['John Doe', 'Jane Smith', 'Michael Johnson', 'Emily Davis', 'Chris Brown', 
