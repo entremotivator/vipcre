@@ -5,35 +5,35 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Function to calculate total amount payable for a credit card
-def calculate_total_payment(balance, interest_rate, months):
-    monthly_rate = interest_rate / 100 / 12
+def calculate_total_payment(balance, annual_rate, months):
+    monthly_rate = annual_rate / 100 / 12
     total_payment = balance * (1 + monthly_rate) ** months
     return total_payment
 
-# Function to calculate amortization schedule
-def calculate_amortization_schedule(principal, annual_rate, months, down_payment):
-    principal -= down_payment
+# Function to calculate the full payment schedule for a credit card
+def calculate_credit_card_schedule(balance, annual_rate, months):
     monthly_rate = annual_rate / 100 / 12
-    if monthly_rate > 0:
-        monthly_payment = (principal * monthly_rate) / (1 - (1 + monthly_rate) ** -months)
-    else:
-        monthly_payment = principal / months
-
+    monthly_payment = (balance * monthly_rate) / (1 - (1 + monthly_rate) ** -months)
+    
     schedule = []
+    total_payment = 0
     for i in range(1, months + 1):
-        interest_payment = principal * monthly_rate
+        interest_payment = balance * monthly_rate
         principal_payment = monthly_payment - interest_payment
-        principal -= principal_payment
+        balance -= principal_payment
+        total_payment += monthly_payment
         schedule.append({
             "Month": i,
             "Payment": monthly_payment,
             "Principal Payment": principal_payment,
             "Interest Payment": interest_payment,
-            "Remaining Balance": principal
+            "Remaining Balance": max(balance, 0)
         })
+        if balance <= 0:
+            break
 
     df_schedule = pd.DataFrame(schedule)
-    return df_schedule
+    return df_schedule, total_payment
 
 # Function to calculate minimum credit card payment
 def calculate_minimum_payment(balance, annual_rate, minimum_percentage):
@@ -66,29 +66,47 @@ if calculator_type == "Credit Card Calculator":
 
     # Input fields
     balance = st.number_input("Credit Card Balance ($)", min_value=0.0, step=100.0)
-    interest_rate = st.number_input("Annual Interest Rate (%)", min_value=0.0, step=0.1)
+    annual_rate = st.number_input("Annual Interest Rate (%)", min_value=0.0, step=0.1)
     months = st.number_input("Months to Pay Off", min_value=1, step=1)
 
     # Calculate button
-    if st.button("Calculate Total Payment"):
-        if balance > 0 and interest_rate >= 0 and months > 0:
-            total_payment = calculate_total_payment(balance, interest_rate, months)
+    if st.button("Calculate Payment Schedule"):
+        if balance > 0 and annual_rate >= 0 and months > 0:
+            schedule_df, total_payment = calculate_credit_card_schedule(balance, annual_rate, months)
+            st.write("Payment Schedule")
+            st.dataframe(schedule_df)
             st.success(f"The total amount payable is ${total_payment:,.2f}")
 
-            # Visualize Payment Over Time
-            months_range = np.arange(1, months + 1)
-            payments = [calculate_total_payment(balance, interest_rate, month) for month in months_range]
+            # Visualize Payment Schedule
+            fig, ax = plt.subplots(2, 1, figsize=(12, 10))
             
-            fig, ax = plt.subplots()
-            ax.plot(months_range, payments, marker='o')
-            ax.set_xlabel('Months')
-            ax.set_ylabel('Total Payment ($)')
-            ax.set_title('Total Payment Over Time')
+            # Principal vs Interest Payment
+            sns.lineplot(data=schedule_df, x="Month", y="Principal Payment", ax=ax[0], label='Principal Payment', color='blue')
+            sns.lineplot(data=schedule_df, x="Month", y="Interest Payment", ax=ax[0], label='Interest Payment', color='red')
+            ax[0].set_xlabel('Month')
+            ax[0].set_ylabel('Payment ($)')
+            ax[0].set_title('Principal and Interest Payment Breakdown')
+            ax[0].legend()
+
+            # Remaining Balance
+            sns.lineplot(data=schedule_df, x="Month", y="Remaining Balance", ax=ax[1], color='green')
+            ax[1].set_xlabel('Month')
+            ax[1].set_ylabel('Remaining Balance ($)')
+            ax[1].set_title('Remaining Balance Over Time')
+
             st.pyplot(fig)
+
+            # Export Option
+            st.download_button(
+                label="Download Payment Schedule as CSV",
+                data=schedule_df.to_csv(index=False).encode('utf-8'),
+                file_name='credit_card_payment_schedule.csv',
+                mime='text/csv'
+            )
         else:
             st.error("Please enter valid inputs. Balance and months must be greater than 0.")
 
-    st.write("This calculator estimates the total payment required to pay off your credit card balance, assuming no additional charges are made.")
+    st.write("This calculator provides a detailed payment schedule for paying off your credit card balance, showing how much of each payment goes towards principal and interest.")
 
 # Amortization Calculator
 elif calculator_type == "Amortization Calculator":
@@ -174,3 +192,4 @@ elif calculator_type == "Credit Card Minimum Payment Calculator":
 
 # Run the app by saving it as 'enhanced_financial_calculators.py'
 # and executing `streamlit run enhanced_financial_calculators.py` in your terminal.
+
