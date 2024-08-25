@@ -10,6 +10,10 @@ st.title("**Credit Building Blueprint - 10 Key Projects**")
 st.subheader("Organize and Manage Your Credit Building Projects Effectively!")
 st.sidebar.image("logooo.png", use_column_width=True)
 
+if "authenticated" not in st.session_state or not st.session_state.authenticated:
+    st.error("You need to log in to access this page.")
+    st.stop()
+    
 # Local Database
 @st.cache_data
 def get_local_data():
