@@ -8,6 +8,7 @@ st.set_page_config(page_title="Credit Building Blueprint")
 # Title and Subheader
 st.title("**Credit Building Blueprint - 10 Key Projects**")
 st.subheader("Organize and Manage Your Credit Building Projects Effectively!")
+st.sidebar.image("logooo.png", use_column_width=True)
 
 # Local Database
 @st.cache_data
