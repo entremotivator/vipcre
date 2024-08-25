@@ -2,6 +2,10 @@ import streamlit as st
 
 st.sidebar.image("logooo.png", use_column_width=True)
 
+if "authenticated" not in st.session_state or not st.session_state.authenticated:
+    st.error("You need to log in to access this page.")
+    st.stop()
+    
 # List of 100 real businesses with Net 30, Net 60, and Net 90 payment terms
 trade_lines = [
     {"name": "Uline (Net 30)", "url": "https://www.uline.com/"},
