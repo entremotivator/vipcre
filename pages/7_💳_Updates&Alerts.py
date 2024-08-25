@@ -4,6 +4,10 @@ from datetime import datetime
 
 st.sidebar.image("logooo.png", use_column_width=True)
 
+if "authenticated" not in st.session_state or not st.session_state.authenticated:
+    st.error("You need to log in to access this page.")
+    st.stop()
+    
 # Expanded sample data for messages
 messages_data = [
     {"sender": "Client", "recipient": "Customer", "message": "Your credit report has been updated.", "timestamp": "2024-08-25 12:00"},
