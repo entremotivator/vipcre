@@ -11,6 +11,10 @@ logger = logging.getLogger(__name__)
 
 st.sidebar.image("logooo.png", use_column_width=True)
 
+if "authenticated" not in st.session_state or not st.session_state.authenticated:
+    st.error("You need to log in to access this page.")
+    st.stop()
+    
 # Function to calculate total amount payable for a credit card
 def calculate_total_payment(balance, annual_rate, months):
     logger.info("Calculating total payment for credit card")
