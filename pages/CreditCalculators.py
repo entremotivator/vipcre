@@ -197,6 +197,3 @@ elif calculator_type == "Credit Card Minimum Payment Calculator":
             st.error("Please enter valid inputs. Balance, annual rate, and percentage must be greater than 0.")
 
     st.write("This calculator estimates the total payment required to pay off your credit card balance with a minimum payment percentage, showing the total payment and duration.")
-
-# Run the app by saving it as 'enhanced_financial_calculators.py'
-# and executing `streamlit run enhanced_financial_calculators.py` in your terminal.
