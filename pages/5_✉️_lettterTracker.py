@@ -5,6 +5,8 @@ from datetime import datetime
 # Set Streamlit to use the full width of the page
 st.set_page_config(layout="wide")
 
+st.sidebar.image("logooo.png", use_column_width=True)
+
 # Sample data to prepopulate the DataFrame with 10 clients
 sample_data = {
     'Client Name': ['John Doe', 'Jane Smith', 'Michael Johnson', 'Emily Davis', 'Chris Brown', 
