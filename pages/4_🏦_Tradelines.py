@@ -1,5 +1,7 @@
 import streamlit as st
 
+st.sidebar.image("logooo.png", use_column_width=True)
+
 # List of 100 real businesses with Net 30, Net 60, and Net 90 payment terms
 trade_lines = [
     {"name": "Uline (Net 30)", "url": "https://www.uline.com/"},
