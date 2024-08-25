@@ -7,7 +7,7 @@ st.set_page_config(
 )
 
 # Sidebar with logo and navigation prompt
-st.sidebar.image("path/to/your/logo.png", use_column_width=True)
+st.sidebar.image("/logooo.png", use_column_width=True)
 st.sidebar.success("Select a page above.")
 
 # App Header
