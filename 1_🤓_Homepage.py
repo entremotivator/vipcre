@@ -9,7 +9,7 @@ st.set_page_config(
 # Check authentication
 if "authenticated" not in st.session_state or not st.session_state.authenticated:
     st.warning("Please log in to access the app.")
-    st.write("[Go to login page](login.py)")
+    st.write("[Go to login page](pages/login.py)")
 else:
     # Sidebar with logo and navigation prompt
     st.sidebar.image("logooo.png", use_column_width=True)
