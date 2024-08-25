@@ -4,6 +4,8 @@ import numpy as np
 import plotly.express as px
 from datetime import datetime, timedelta
 
+st.sidebar.image("logooo.png", use_column_width=True)
+
 # Generate sample data
 def generate_sample_data():
     np.random.seed(42)
