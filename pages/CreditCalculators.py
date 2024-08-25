@@ -56,6 +56,33 @@ def calculate_minimum_payment(balance, annual_rate, minimum_percentage):
             balance = 0
     return total_payment, months
 
+# Function to calculate amortization schedule with down payment
+def calculate_amortization_schedule(principal, annual_rate, months, down_payment):
+    # Adjust principal for down payment
+    loan_amount = principal - down_payment
+    monthly_rate = annual_rate / 100 / 12
+    monthly_payment = (loan_amount * monthly_rate) / (1 - (1 + monthly_rate) ** -months)
+    
+    schedule = []
+    total_payment = 0
+    for i in range(1, months + 1):
+        interest_payment = loan_amount * monthly_rate
+        principal_payment = monthly_payment - interest_payment
+        loan_amount -= principal_payment
+        total_payment += monthly_payment
+        schedule.append({
+            "Month": i,
+            "Payment": monthly_payment,
+            "Principal Payment": principal_payment,
+            "Interest Payment": interest_payment,
+            "Remaining Balance": max(loan_amount, 0)
+        })
+        if loan_amount <= 0:
+            break
+
+    df_schedule = pd.DataFrame(schedule)
+    return df_schedule
+
 # Streamlit UI
 st.title("Comprehensive Financial Calculators")
 
@@ -181,19 +208,9 @@ elif calculator_type == "Credit Card Minimum Payment Calculator":
     if st.button("Calculate Minimum Payment"):
         if balance > 0 and annual_rate >= 0 and minimum_percentage > 0:
             total_payment, total_months = calculate_minimum_payment(balance, annual_rate, minimum_percentage)
-            st.success(f"The total amount payable is ${total_payment:,.2f} over {total_months:.0f} months")
-
-            # Visualize Payment Over Time
-            months_range = np.arange(1, int(total_months) + 1)
-            payments = [minimum_percentage / 100 * balance for _ in months_range]
-            
-            fig, ax = plt.subplots()
-            ax.plot(months_range, np.cumsum(payments), marker='o')
-            ax.set_xlabel('Months')
-            ax.set_ylabel('Cumulative Payment ($)')
-            ax.set_title('Cumulative Payment Over Time')
-            st.pyplot(fig)
+            st.success(f"The total amount payable is ${total_payment:,.2f} over {total_months} months.")
         else:
-            st.error("Please enter valid inputs. Balance, annual rate, and percentage must be greater than 0.")
+            st.error("Please enter valid inputs. Balance and percentage must be greater than 0.")
 
-    st.write("This calculator estimates the total payment required to pay off your credit card balance with a minimum payment percentage, showing the total payment and duration.")
+    st.write("This calculator estimates the total amount you'll pay and the duration required to pay off your credit card balance based on the minimum payment percentage.")
+
