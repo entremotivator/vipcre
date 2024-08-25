@@ -9,9 +9,7 @@ st.set_page_config(
 # Function to authenticate the user
 def authenticate(username, password):
     # Demo credentials: username = 'user', password = 'pass'
-    if username == "user" and password == "pass":
-        return True
-    return False
+    return username == "user" and password == "pass"
 
 # Handle authentication
 if "authenticated" not in st.session_state:
@@ -111,4 +109,3 @@ else:
     st.write("""
     Explore these features and more in the VIP Credit Systems app. Whether you are looking to improve your credit score, manage your debts, or simply stay on top of your financial health, we’ve got you covered. Start making informed financial decisions today!
     """)
-
