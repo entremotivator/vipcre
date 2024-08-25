@@ -1,44 +1,23 @@
 import streamlit as st
 
-# Function to authenticate the user
-def authenticate(username, password):
-    # Demo credentials: username = 'user', password = 'pass'
-    if username == "user" and password == "pass":
-        return True
-    else:
-        return False
-
-# Set page configuration with a custom page title and icon
+# Set page configuration
 st.set_page_config(
     page_title="VIP Credit Systems",
     page_icon="💳",
 )
 
-# Sidebar with logo and navigation prompt
-st.sidebar.image("logooo.png", use_column_width=True)
-st.sidebar.success("Select a page above.")
-
-# Main page logo at the top of the headers
-st.image("logooo.png", use_column_width=True)
-
-# Check if the user is authenticated
+# Check authentication
 if "authenticated" not in st.session_state or not st.session_state.authenticated:
-    st.title("Login")
-    
-    # Login form
-    with st.form(key='login_form'):
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        login_button = st.form_submit_button("Login")
-        
-        if login_button:
-            if authenticate(username, password):
-                st.session_state.authenticated = True
-                st.success("Login successful!")
-                st.experimental_rerun()  # Rerun the app to display the main content
-            else:
-                st.error("Invalid username or password")
+    st.warning("Please log in to access the app.")
+    st.write("[Go to login page](login.py)")
 else:
+    # Sidebar with logo and navigation prompt
+    st.sidebar.image("logooo.png", use_column_width=True)
+    st.sidebar.success("Select a page above.")
+    
+    # Main page logo at the top of the headers
+    st.image("logooo.png", use_column_width=True)
+
     # App Header
     st.title("VIP Credit Systems")
     st.subheader("Your Comprehensive Credit Management Solution")
@@ -111,4 +90,3 @@ else:
     st.write("""
     Explore these features and more in the VIP Credit Systems app. Whether you are looking to improve your credit score, manage your debts, or simply stay on top of your financial health, we’ve got you covered. Start making informed financial decisions today!
     """)
-
