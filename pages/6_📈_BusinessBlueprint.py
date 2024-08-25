@@ -8,6 +8,8 @@ import json
 # Initialize Streamlit app
 st.set_page_config(page_title="Business Blueprint 101", layout="wide")
 
+st.sidebar.image("logooo.png", use_column_width=True)
+
 # Function to load data
 def load_data():
     if os.path.exists("business_blueprint_data.json"):
