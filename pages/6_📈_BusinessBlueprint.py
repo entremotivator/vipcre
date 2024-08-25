@@ -10,6 +10,10 @@ st.set_page_config(page_title="Business Blueprint 101", layout="wide")
 
 st.sidebar.image("logooo.png", use_column_width=True)
 
+if "authenticated" not in st.session_state or not st.session_state.authenticated:
+    st.error("You need to log in to access this page.")
+    st.stop()
+    
 # Function to load data
 def load_data():
     if os.path.exists("business_blueprint_data.json"):
