@@ -2,12 +2,12 @@ import streamlit as st
 
 # Set page configuration with a custom page title and icon
 st.set_page_config(
-    page_title="Multipage App",
+    page_title="VIP Credit Systems",
     page_icon="💳",
 )
 
 # Sidebar with logo and navigation prompt
-st.sidebar.image("/logooo.png", use_column_width=True)
+st.sidebar.image("vipcre/logooo.png", use_column_width=True)
 st.sidebar.success("Select a page above.")
 
 # App Header
