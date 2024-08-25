@@ -2,7 +2,7 @@ import streamlit as st
 
 # Set page configuration with a custom page title and icon
 st.set_page_config(
-    page_title="VIP Credit Systems",
+    page_title="Multipage App",
     page_icon="💳",
 )
 
