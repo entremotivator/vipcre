@@ -29,16 +29,16 @@ if not st.session_state.authenticated:
             if authenticate(username, password):
                 st.session_state.authenticated = True
                 st.success("Login successful!")
-                st.experimental_rerun()
             else:
                 st.error("Invalid username or password")
-else:
+
+# Main content
+if st.session_state.authenticated:
     # Sidebar with logo and navigation prompt
     with st.sidebar:
         st.image("logooo.png", use_column_width=True)
         st.success("Select a page above.")
 
-    # Main content
     col1, col2, col3 = st.columns([1,2,1])
     
     with col2:
@@ -104,6 +104,8 @@ else:
         st.write("""
         Explore these features and more in the VIP Credit Systems app. Whether you are looking to improve your credit score, manage your debts, or simply stay on top of your financial health, we've got you covered. Start making informed financial decisions today!
         """)
+else:
+    st.write("Please log in to access the VIP Credit Systems.")
 
 if __name__ == "__main__":
     # You can add any initialization code here if needed
