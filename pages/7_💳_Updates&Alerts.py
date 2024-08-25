@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
+st.sidebar.image("logooo.png", use_column_width=True)
+
 # Expanded sample data for messages
 messages_data = [
     {"sender": "Client", "recipient": "Customer", "message": "Your credit report has been updated.", "timestamp": "2024-08-25 12:00"},
