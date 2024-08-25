@@ -11,7 +11,8 @@ def calculate_total_payment(balance, interest_rate, months):
     return total_payment
 
 # Function to calculate amortization schedule
-def calculate_amortization_schedule(principal, annual_rate, months):
+def calculate_amortization_schedule(principal, annual_rate, months, down_payment):
+    principal -= down_payment
     monthly_rate = annual_rate / 100 / 12
     if monthly_rate > 0:
         monthly_payment = (principal * monthly_rate) / (1 - (1 + monthly_rate) ** -months)
@@ -95,13 +96,14 @@ elif calculator_type == "Amortization Calculator":
 
     # Input fields
     principal = st.number_input("Loan Principal ($)", min_value=0.0, step=1000.0)
+    down_payment = st.number_input("Down Payment ($)", min_value=0.0, step=100.0)
     annual_rate = st.number_input("Annual Interest Rate (%)", min_value=0.0, step=0.1)
     months = st.number_input("Loan Term (Months)", min_value=1, step=1)
 
     # Calculate button
     if st.button("Calculate Amortization Schedule"):
         if principal > 0 and annual_rate >= 0 and months > 0:
-            schedule_df = calculate_amortization_schedule(principal, annual_rate, months)
+            schedule_df = calculate_amortization_schedule(principal, annual_rate, months, down_payment)
             st.write("Amortization Schedule")
             st.dataframe(schedule_df)
 
@@ -138,7 +140,7 @@ elif calculator_type == "Amortization Calculator":
         else:
             st.error("Please enter valid inputs. Principal and months must be greater than 0.")
 
-    st.write("This calculator generates an amortization schedule showing the breakdown of each monthly payment.")
+    st.write("This calculator generates an amortization schedule showing the breakdown of each monthly payment, taking into account the down payment.")
 
 # Credit Card Minimum Payment Calculator
 elif calculator_type == "Credit Card Minimum Payment Calculator":
