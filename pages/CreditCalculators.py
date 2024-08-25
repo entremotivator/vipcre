@@ -13,9 +13,12 @@ def calculate_total_payment(balance, interest_rate, months):
 # Function to calculate amortization schedule
 def calculate_amortization_schedule(principal, annual_rate, months):
     monthly_rate = annual_rate / 100 / 12
-    monthly_payment = np.pmt(monthly_rate, months, -principal)
-    schedule = []
+    if monthly_rate > 0:
+        monthly_payment = (principal * monthly_rate) / (1 - (1 + monthly_rate) ** -months)
+    else:
+        monthly_payment = principal / months
 
+    schedule = []
     for i in range(1, months + 1):
         interest_payment = principal * monthly_rate
         principal_payment = monthly_payment - interest_payment
@@ -36,14 +39,16 @@ def calculate_minimum_payment(balance, annual_rate, minimum_percentage):
     monthly_rate = annual_rate / 100 / 12
     minimum_payment = balance * (minimum_percentage / 100)
     total_payment = 0
+    months = 0
     while balance > 0:
         interest = balance * monthly_rate
         balance = balance + interest - minimum_payment
         total_payment += minimum_payment
+        months += 1
         if balance < 0:
             total_payment += balance
             balance = 0
-    return total_payment, total_payment / (total_payment / minimum_payment)
+    return total_payment, months
 
 # Streamlit UI
 st.title("Comprehensive Financial Calculators")
