@@ -9,6 +9,8 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+st.sidebar.image("logooo.png", use_column_width=True)
+
 # Function to calculate total amount payable for a credit card
 def calculate_total_payment(balance, annual_rate, months):
     logger.info("Calculating total payment for credit card")
