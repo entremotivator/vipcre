@@ -6,6 +6,10 @@ from datetime import datetime, timedelta
 
 st.sidebar.image("logooo.png", use_column_width=True)
 
+if "authenticated" not in st.session_state or not st.session_state.authenticated:
+    st.error("You need to log in to access this page.")
+    st.stop()
+    
 # Generate sample data
 def generate_sample_data():
     np.random.seed(42)
