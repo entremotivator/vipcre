@@ -1,104 +1,141 @@
 import streamlit as st
+import pandas as pd
+from datetime import datetime
 
-# App Header
-st.title("VIP Credit Systems")
-st.subheader("Your Comprehensive Credit Management Solution")
+# Expanded sample data for messages
+messages_data = [
+    {"sender": "Client", "recipient": "Customer", "message": "Your credit report has been updated.", "timestamp": "2024-08-25 12:00"},
+    {"sender": "Customer", "recipient": "Client", "message": "Thank you for the update.", "timestamp": "2024-08-25 13:00"},
+    {"sender": "Client", "recipient": "Customer", "message": "Please review the recent credit inquiry.", "timestamp": "2024-08-24 10:30"},
+    {"sender": "Customer", "recipient": "Client", "message": "The inquiry has been reviewed. No action needed.", "timestamp": "2024-08-24 11:00"},
+    {"sender": "Client", "recipient": "Customer", "message": "Your credit score improved by 15 points.", "timestamp": "2024-08-23 09:00"},
+    {"sender": "Customer", "recipient": "Client", "message": "That's great news, thank you!", "timestamp": "2024-08-23 09:15"},
+    {"sender": "Client", "recipient": "Customer", "message": "A new credit account was opened in your name.", "timestamp": "2024-08-22 14:45"},
+    {"sender": "Customer", "recipient": "Client", "message": "I did not authorize a new account. Please investigate.", "timestamp": "2024-08-22 15:10"},
+    {"sender": "Client", "recipient": "Customer", "message": "We have initiated an investigation into the unauthorized account.", "timestamp": "2024-08-22 15:30"},
+    {"sender": "Customer", "recipient": "Client", "message": "Thank you for your prompt action.", "timestamp": "2024-08-22 15:45"},
+]
 
-# Introduction
-st.write("""
-Welcome to **VIP Credit Systems**, where managing your credit has never been easier. Our system provides a wide range of tools and insights to help you understand and optimize your credit profile. Below is a detailed list of features we offer to assist you in taking control of your financial future.
-""")
+# Expanded sample data for credit updates
+credit_updates_data = [
+    {"update": "Credit score increased by 20 points.", "date": "2024-08-24"},
+    {"update": "New inquiry on your credit report.", "date": "2024-08-23"},
+    {"update": "Credit card balance paid off.", "date": "2024-08-22"},
+    {"update": "Loan application approved.", "date": "2024-08-21"},
+    {"update": "Dispute resolved in your favor.", "date": "2024-08-20"},
+    {"update": "New credit account opened.", "date": "2024-08-19"},
+    {"update": "Credit utilization reduced to 30%.", "date": "2024-08-18"},
+    {"update": "Late payment recorded on credit report.", "date": "2024-08-17"},
+    {"update": "Credit score decreased by 10 points.", "date": "2024-08-16"},
+    {"update": "Debt-to-income ratio improved.", "date": "2024-08-15"},
+]
 
-# Feature List with Descriptions
-st.markdown("""
-### Features:
+# Convert to DataFrame
+messages_df = pd.DataFrame(messages_data)
+credit_updates_df = pd.DataFrame(credit_updates_data)
 
-- 📊 **Credit Score Overview**  
-  Get a quick snapshot of your current credit score, along with historical trends and key factors influencing your score.
+# Home Page
+def home():
+    st.title("Client-Customer Message & Board Updates")
+    st.header("Recent Messages")
+    st.dataframe(messages_df)
+    
+    st.header("Recent Credit Updates")
+    st.dataframe(credit_updates_df)
 
-- 💳 **Credit Utilization**  
-  Monitor how much of your available credit you're using. Lower utilization rates can improve your credit score.
+# Messages Page
+def messages():
+    st.title("Messages")
+    sender = st.selectbox("Sender", ["Client", "Customer"])
+    recipient = "Customer" if sender == "Client" else "Client"
+    message = st.text_area("Message")
 
-- 🗓️ **Payment History**  
-  Review your on-time payments and any late payments that could affect your credit score.
+    st.subheader("Message History")
+    st.dataframe(messages_df)
 
-- 📑 **Credit Report Summary**  
-  Access a concise summary of your credit report, highlighting crucial information about your credit history.
+    if st.button("Send Message"):
+        new_message = {
+            "sender": sender,
+            "recipient": recipient,
+            "message": message,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
+        }
+        messages_df.append(new_message, ignore_index=True)
+        st.success("Message sent!")
 
-- 🔍 **Credit Inquiries**  
-  Keep track of any hard and soft inquiries made on your credit report, helping you understand who has been checking your credit.
+        st.subheader("Updated Message History")
+        st.dataframe(messages_df)
+    
+    st.subheader("Filter Messages")
+    filter_sender = st.selectbox("Filter by Sender", ["All", "Client", "Customer"])
+    if filter_sender != "All":
+        filtered_df = messages_df[messages_df['sender'] == filter_sender]
+    else:
+        filtered_df = messages_df
+    st.dataframe(filtered_df)
+    
+    st.subheader("Search Messages")
+    search_term = st.text_input("Enter a keyword to search")
+    if search_term:
+        search_results = messages_df[messages_df['message'].str.contains(search_term, case=False)]
+        st.dataframe(search_results)
 
-- 🎯 **Credit Limits**  
-  View your credit limits across all accounts and analyze how much of your credit is being utilized.
+# Credit Updates Page
+def credit_updates():
+    st.title("Credit Updates")
+    st.subheader("Recent Credit Changes")
+    st.dataframe(credit_updates_df)
 
-- ⚖️ **Debt-to-Income Ratio**  
-  Calculate and monitor your debt-to-income ratio, a key factor in creditworthiness.
+    st.subheader("Add a New Credit Update")
+    new_update = st.text_area("Describe the credit update")
+    update_date = st.date_input("Date of Update", datetime.today())
 
-- 💰 **Loan and Credit Card Balances**  
-  Stay updated on your outstanding loan and credit card balances, so you know exactly what you owe.
+    if st.button("Add Update"):
+        new_credit_update = {
+            "update": new_update,
+            "date": update_date.strftime("%Y-%m-%d")
+        }
+        credit_updates_df.append(new_credit_update, ignore_index=True)
+        st.success("Credit update added!")
+        
+        st.subheader("Updated Credit Updates")
+        st.dataframe(credit_updates_df)
 
-- ⏳ **Account Age**  
-  Understand the impact of the age of your credit accounts on your overall credit score.
+    st.subheader("Filter Credit Updates by Date")
+    start_date = st.date_input("Start Date", datetime(2024, 1, 1))
+    end_date = st.date_input("End Date", datetime.today())
+    
+    filtered_credit_updates = credit_updates_df[
+        (credit_updates_df['date'] >= start_date.strftime("%Y-%m-%d")) & 
+        (credit_updates_df['date'] <= end_date.strftime("%Y-%m-%d"))
+    ]
+    st.dataframe(filtered_credit_updates)
 
-- 💵 **Monthly Payments**  
-  View and manage your upcoming monthly payments to ensure you never miss a due date.
+# Board Updates Page
+def board_updates():
+    st.title("Board Updates")
+    st.subheader("Recent Announcements")
+    st.write("No new board updates at the moment.")
 
-- 📂 **Credit Accounts Breakdown**  
-  A detailed breakdown of all your credit accounts, including credit cards, loans, and other types of credit.
+    st.subheader("Post a New Board Update")
+    board_update = st.text_area("Write your update")
+    if st.button("Post Update"):
+        st.success("Board update posted!")
+        st.write("Here's what you posted:")
+        st.write(board_update)
+    
+    st.subheader("Archived Board Updates")
+    st.write("No archived updates available.")
 
-- 🏆 **Top 5 Highest Balances**  
-  Identify which of your accounts have the highest balances, helping you prioritize debt repayment.
+# Navigation
+menu = ["Home", "Messages", "Credit Updates", "Board Updates"]
+choice = st.sidebar.selectbox("Menu", menu)
 
-- 📝 **Top 5 Recent Transactions**  
-  Keep an eye on your most recent transactions to spot any unusual or unauthorized activity.
-
-- 📅 **Upcoming Payments**  
-  Never miss a payment again with a clear view of all your upcoming payments.
-
-- 🔄 **Credit Utilization by Account Type**  
-  Analyze your credit utilization by account type to see where you might need to make adjustments.
-
-- 📈 **Average Payment History**  
-  Get an average overview of your payment history, showing how consistent you've been with payments over time.
-
-- 📊 **Credit Score Trend**  
-  Track the trend of your credit score over time to see how your financial decisions impact your score.
-
-- 💸 **Monthly Spending Trend**  
-  Visualize your spending habits over the months to identify patterns and areas where you can save.
-
-- 📉 **Credit Score vs. Credit Utilization**  
-  See the relationship between your credit score and your credit utilization to better manage both.
-
-- 📅 **Debt Repayment Schedule**  
-  Plan out your debt repayment strategy with a detailed schedule to help you become debt-free faster.
-
-- 🆕 **New Credit Accounts**  
-  Monitor the opening of any new credit accounts and understand how they might affect your credit score.
-
-- 🧠 **Credit Score Impact Simulation**  
-  Simulate different scenarios to see how potential actions could impact your credit score.
-
-- 📉 **Debt Reduction Plan**  
-  Get personalized tips on how to reduce your debt effectively and improve your credit score.
-
-- 💡 **Credit Score Improvement Tips**  
-  Receive actionable advice on how to improve your credit score based on your current credit profile.
-
-- ⚠️ **Alerts and Recommendations**  
-  Set up alerts for important events that might impact your credit and receive personalized recommendations.
-
-- ✏️ **Edit Credit Info**  
-  Easily update and correct any information in your credit profile to ensure it’s accurate and up-to-date.
-
-- 📤 **Export Data**  
-  Export your credit information in various formats for easy sharing or record-keeping.
-""")
-
-# Conclusion
-st.write("""
-Explore these features and more in the VIP Credit Systems app. Whether you are looking to improve your credit score, manage your debts, or simply stay on top of your financial health, we’ve got you covered. Start making informed financial decisions today!
-""")
-
-# Call to Action
-st.button("Get Started")
+if choice == "Home":
+    home()
+elif choice == "Messages":
+    messages()
+elif choice == "Credit Updates":
+    credit_updates()
+elif choice == "Board Updates":
+    board_updates()
