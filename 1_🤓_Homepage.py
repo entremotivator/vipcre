@@ -11,24 +11,24 @@ def authenticate(username, password):
     # Demo credentials: username = 'user', password = 'pass'
     return username == "user" and password == "pass"
 
-# Handle authentication
+# Sidebar for login
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    st.title("Login")
-    with st.form(key='login_form'):
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        login_button = st.form_submit_button("Login")
+    with st.sidebar.form(key='login_form'):
+        st.sidebar.header("Login")
+        username = st.sidebar.text_input("Username")
+        password = st.sidebar.text_input("Password", type="password")
+        login_button = st.sidebar.form_submit_button("Login")
         
         if login_button:
             if authenticate(username, password):
                 st.session_state.authenticated = True
-                st.success("Login successful!")
-                st.experimental_rerun()  # Rerun the app to display the main content
+                st.sidebar.success("Login successful!")
+                st.experimental_rerun()  # Optional: rerun to refresh the app content
             else:
-                st.error("Invalid username or password")
+                st.sidebar.error("Invalid username or password")
 else:
     # Sidebar with logo and navigation prompt
     st.sidebar.image("logooo.png", use_column_width=True)
@@ -109,3 +109,4 @@ else:
     st.write("""
     Explore these features and more in the VIP Credit Systems app. Whether you are looking to improve your credit score, manage your debts, or simply stay on top of your financial health, we’ve got you covered. Start making informed financial decisions today!
     """)
+
