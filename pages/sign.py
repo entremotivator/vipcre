@@ -99,5 +99,3 @@ else:
 
     with col3:
         st.write("")  # Spacer
-
-
