@@ -5,7 +5,7 @@ import webbrowser
 # WordPress site URL and JWT endpoints
 WP_URL = "https://vipbusinesscredit.com"
 JWT_ENDPOINT = f"{WP_URL}/wp-json/jwt-auth/v1/token"
-SIGNUP_URL = f"{WP_URL}/register"  # Assuming this is the sign-up page URL
+SIGNUP_URL = f"{WP_URL}/wp-admin"  # Assuming this is the sign-up page URL
 
 def authenticate(username, password):
     try:
