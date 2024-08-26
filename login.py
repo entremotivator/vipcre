@@ -1,42 +1,54 @@
 import streamlit as st
-import requests
+from wordpress_auth import WordpressAuth
 
-# Define the URL for JWT login
-WORDPRESS_LOGIN_URL = "https://vipbusinesscredit.com/?rest_route=/simple-jwt-login/v1/autologin"
+def get_user_input():
+    with st.sidebar:
+        st.title("Configuration Settings")
+        wordpress_url = st.text_input("WordPress Site URL", placeholder="https://yourwordpressurl.com")
+        api_key_input = st.text_input("API Key", type="password")
+        return wordpress_url, api_key_input
 
-def authenticate(email):
-    # Prepare the URL with email as a query parameter
-    url = f"{https://vipbusinesscredit.com/wp-admin}&JWT=email={email}"
-    
-    # Make a request to the WordPress endpoint
-    response = requests.get(url)
-    
-    # Check if authentication was successful
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error("Authentication failed. Please check your email.")
-        return None
+def main_page():
+    st.title("Welcome to the Application")
+    st.write("This is the main content of the application.")
+    # Additional main page content can be added here.
 
-def main():
-    st.title("WordPress JWT Authentication")
+def login_page(auth):
+    st.title("Please Log In")
+    with st.form(key='login_form'):
+        username_input = st.text_input('Username')
+        password_input = st.text_input('Password', type='password')
+        submit_button = st.form_submit_button(label='Log In')
 
-    # Input field for user email
-    email = st.text_input("Enter your email address")
-
-    # Button to submit email for authentication
-    if st.button("Log In"):
-        if email:
-            # Call authenticate function
-            result = authenticate(email)
-            if result:
-                st.success("Login successful!")
-                st.write(result)
+        if submit_button:
+            token = auth.get_token(username_input, password_input)
+            if token and auth.verify_token(token):
+                st.session_state['token'] = token  # Store the token in the session state
+                st.success("Logged in successfully!")
+                st.experimental_rerun()  # Reload the page to show the main content
             else:
-                st.error("Login failed.")
-        else:
-            st.error("Please enter an email address.")
+                st.error('Access denied. Please check your credentials and try again.')
 
-if __name__ == "__main__":
+# Sidebar for configuration inputs
+wordpress_url, api_key_input = get_user_input()
+
+if wordpress_url and api_key_input:
+    # Initialize the WordPressAuth instance
+    auth = WordpressAuth(api_key=api_key_input, base_url=wordpress_url)
+    
+    # Check if the user is already logged in
+    if 'token' in st.session_state and auth.verify_token(st.session_state['token']):
+        main_page()  # User is authenticated, show the main page
+    else:
+        login_page(auth)  # Show the login form
+else:
+    st.warning("Please enter the WordPress site URL and API key in the sidebar.")
+
+# Optionally, add a logout button
+if 'token' in st.session_state:
+    if st.sidebar.button('Log Out'):
+        del st.session_state['token']  # Remove the token from session state
+        st.experimental_rerun()  # Reload the page to show the login form again
+
     main()
         show_login_page()
