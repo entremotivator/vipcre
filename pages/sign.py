@@ -1,19 +1,17 @@
 import streamlit as st
 import requests
 
-# WordPress site URL and JWT endpoints
-WP_URL = "https://vipbusinesscredit.com"
-JWT_ENDPOINT = f"{WP_URL}/wp-json/jwt-auth/v1/token"
-REGISTER_ENDPOINT = f"{WP_URL}/wp-json/wp/v2/users/register"
+# Retrieve configurations from Streamlit secrets
+WP_URL = st.secrets["wordpress"]["wp_url"]
+JWT_ENDPOINT = f"{WP_URL}{st.secrets['wordpress']['jwt_endpoint']}"
+REGISTER_ENDPOINT = f"{WP_URL}{st.secrets['wordpress']['register_endpoint']}"
 
 def authenticate(username, password):
     try:
-        # Adding necessary headers
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
-        # Sending a POST request to the JWT Authentication endpoint
         response = requests.post(JWT_ENDPOINT, json={'username': username, 'password': password}, headers=headers)
         
         if response.status_code == 200:
@@ -33,7 +31,6 @@ def register(username, password, email):
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
-        # Sending a POST request to the registration endpoint
         response = requests.post(REGISTER_ENDPOINT, json={
             'username': username,
             'password': password,
