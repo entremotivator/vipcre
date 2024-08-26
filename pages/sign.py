@@ -1,55 +1,27 @@
 import streamlit as st
-import requests
+from wordpress_auth import WordpressAuth
 
-# WordPress site and endpoint
-WP_SITE_URL = "https://vipbusinesscredit.com"
-JWT_AUTH_URL = f"{WP_SITE_URL}/wp-json/jwt-auth/v1/token"
+# Set your WordPress site base URL and API key here.
+auth = WordpressAuth(api_key='YOUR_API_KEY', base_url='https://yourwordpressurl.com')
 
-def authenticate(username, password):
-    """Authenticate the user with WordPress JWT."""
-    response = requests.post(JWT_AUTH_URL, data={'username': username, 'password': password})
-    if response.status_code == 200:
-        token = response.json().get('token')
-        if token:
-            st.session_state.token = token
-            return True
-        else:
-            st.error("Authentication failed: Token not received.")
-    else:
-        st.error(f"Authentication failed: {response.status_code} - {response.text}")
-    return False
+def main():
+    st.write("This is the main page of the application.")  # Your main code goes here
 
-def show_login_page():
-    st.title("Login / Sign Up")
+# Check if the user is already logged in
+if 'token' in st.session_state and auth.verify_token(st.session_state['token']):
+    main()  # Call the main function
+else:
+    # Show the login form
+    with st.form(key='login_form'):
+        st.title("Please log in")
+        username = st.text_input('Username')
+        password = st.text_input('Password', type='password')
+        submit_button = st.form_submit_button(label='Log in')
 
-    login_mode = st.radio("Select your mode", ["Login", "Sign Up"])
-    
-    if login_mode == "Login":
-        with st.form(key='login_form'):
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            login_button = st.form_submit_button("Login")
-            
-            if login_button:
-                if authenticate(username, password):
-                    st.session_state.authenticated = True
-                    st.success("Login successful!")
-                    st.experimental_rerun()  # Rerun the app to display the main content
-                else:
-                    st.error("Invalid username or password")
-
-    elif login_mode == "Sign Up":
-        st.warning("Sign up is not supported directly through this interface. Please register through the WordPress site.")
-
-if __name__ == "__main__":
-    if 'authenticated' not in st.session_state:
-        st.session_state.authenticated = False
-    
-    if 'token' not in st.session_state:
-        st.session_state.token = None
-
-    if st.session_state.authenticated:
-        st.title("Welcome to the main content!")
-        # Your main app content here
-    else:
-        show_login_page()
+        if submit_button:
+            token = auth.get_token(username, password)
+            if token and auth.verify_token(token):
+                st.session_state['token'] = token  # We store the token in the session state
+                st.experimental_rerun()  # Reload the page so that the login form disappears
+            else:
+                st.error('Access denied')
