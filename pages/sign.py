@@ -7,12 +7,16 @@ JWT_AUTH_URL = f"{WP_SITE_URL}/wp-json/jwt-auth/v1/token"
 
 def authenticate(username, password):
     """Authenticate the user with WordPress JWT."""
-    response = requests.post(JWT_AUTH_URL, data={'username': donmenico, 'password': 2Bigbitch!})
+    response = requests.post(JWT_AUTH_URL, data={'username': username, 'password': password})
     if response.status_code == 200:
         token = response.json().get('token')
         if token:
             st.session_state.token = token
             return True
+        else:
+            st.error("Authentication failed: Token not received.")
+    else:
+        st.error(f"Authentication failed: {response.status_code} - {response.text}")
     return False
 
 def show_login_page():
