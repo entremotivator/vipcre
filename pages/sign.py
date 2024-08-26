@@ -1,53 +1,41 @@
-import requests
 import streamlit as st
+import requests
 
-API_KEY = '3g5F ftMi R6I2 jIl0 rguW 2EFU'  # Replace this with your API key
+# Define the URL for JWT login
+WORDPRESS_LOGIN_URL = "https://vipbusinesscredit.com/?rest_route=/simple-jwt-login/v1/autologin"
 
-st.set_page_config(layout="wide")
-
-def get_token(username, password):
-    # Sends a POST request to the WordPress REST API to obtain a JWT
-    response = requests.post(
-        'https://vipbusinesscredit.com/wp-json/jwt-auth/v1/token',  # Replace this with the URL of your WordPress installation
-        data={'username': username, 'password': password},
-        headers={'X-API-KEY': API_KEY}
-    )
+def authenticate(email):
+    # Prepare the URL with email as a query parameter
+    url = f"{WORDPRESS_LOGIN_URL}&JWT=email={email}"
+    
+    # Make a request to the WordPress endpoint
+    response = requests.get(url)
+    
+    # Check if authentication was successful
     if response.status_code == 200:
-        return response.json()['token']
+        return response.json()
     else:
+        st.error("Authentication failed. Please check your email.")
         return None
 
-def verify_token(token):
-    # Sends a POST request to the WordPress REST API to validate the JWT
-    response = requests.post(
-        'https://vipbusinesscredit.com/wp-json/jwt-auth/v1/token/validate',  # Replace this with the URL of your WordPress installation
-        headers={'Authorization': f'Bearer {token}', 'X-API-KEY': API_KEY}
-    )
-    return response.status_code == 200
-
 def main():
-    st.write("This is the main page of the application.")  # Your main code goes here
+    st.title("WordPress JWT Authentication")
 
-# Check if the user is already logged in
-if 'token' in st.session_state and verify_token(st.session_state['token']):
-    main()  # Call the main function
-else:
-    # Show the login form
-    col1, col2, col3 = st.columns([1, 1, 1])
-    with col1:
-        st.write("")
-    with col2:
-        with st.form(key='login_form'):
-            st.title("Please log in")
-            username = st.text_input('Username')
-            password = st.text_input('Password', type='password')
-            submit_button = st.form_submit_button(label='Log in')
-            if submit_button:
-                token = get_token(username, password)
-                if token and verify_token(token):
-                    st.session_state['token'] = token  # Store the token in the session state
-                    st.experimental_rerun()  # Reload the page so that the login form disappears
-                else:
-                    st.error('Access denied')
-    with col3:
-        st.write("")
+    # Input field for user email
+    email = st.text_input("Enter your email address")
+
+    # Button to submit email for authentication
+    if st.button("Log In"):
+        if email:
+            # Call authenticate function
+            result = authenticate(email)
+            if result:
+                st.success("Login successful!")
+                st.write(result)
+            else:
+                st.error("Login failed.")
+        else:
+            st.error("Please enter an email address.")
+
+if __name__ == "__main__":
+    main()
