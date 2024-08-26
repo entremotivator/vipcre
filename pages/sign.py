@@ -20,7 +20,7 @@ def get_token(username, password):
 def verify_token(token):
     # Sends a POST request to the WordPress REST API to validate the JWT
     response = requests.post(
-        'https://yourwordpressurl.com/wp-json/jwt-auth/v1/token/validate',  # Replace this with the URL of your WordPress installation
+        'https://vipbusinesscredit.com/wp-json/jwt-auth/v1/token/validate',  # Replace this with the URL of your WordPress installation
         headers={'Authorization': f'Bearer {token}', 'X-API-KEY': API_KEY}
     )
     return response.status_code == 200
