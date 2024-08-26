@@ -6,3 +6,4 @@ plotly
 matplotlib
 uuid
 seaborn
+request
