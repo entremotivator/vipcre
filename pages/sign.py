@@ -6,7 +6,7 @@ WORDPRESS_LOGIN_URL = "https://vipbusinesscredit.com/?rest_route=/simple-jwt-log
 
 def authenticate(email):
     # Prepare the URL with email as a query parameter
-    url = f"{WORDPRESS_LOGIN_URL}&JWT=email={email}"
+    url = f"{https://vipbusinesscredit.com/wp-admin}&JWT=email={email}"
     
     # Make a request to the WordPress endpoint
     response = requests.get(url)
