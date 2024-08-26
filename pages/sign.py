@@ -1,79 +1,66 @@
-import requests
 import streamlit as st
-
-# Set up the page layout
-st.set_page_config(layout="wide")
-
-# Retrieve the API key from Streamlit's secrets management
-API_KEY = st.secrets["wordpress_api_key"]  # Store your API key in Streamlit secrets
+import requests
+import webbrowser
 
 # WordPress site URL and JWT endpoints
 WP_URL = "https://vipbusinesscredit.com"
 JWT_ENDPOINT = f"{WP_URL}/wp-json/jwt-auth/v1/token"
-TOKEN_VALIDATE_ENDPOINT = f"{WP_URL}/wp-json/jwt-auth/v1/token/validate"
+SIGNUP_URL = f"{WP_URL}/register"  # Assuming this is the sign-up page URL
 
-def get_token(username, password):
+def authenticate(username, password):
     try:
-        # Fetch the IP address from query parameters if available
-        ip_address = st.experimental_get_query_params().get('ip', [None])[0]
-        
-        response = requests.post(
-            JWT_ENDPOINT,
-            json={'username': username, 'password': password, 'ip_address': ip_address},
-            headers={'Authorization': f'Bearer {API_KEY}', 'Content-Type': 'application/json'}
-        )
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+        response = requests.post(JWT_ENDPOINT, json={'username': username, 'password': password}, headers=headers)
         
         if response.status_code == 200:
-            return response.json().get('token')
+            st.session_state.jwt_token = response.json().get('token')
+            return True
         else:
-            st.error(f"Failed to get token: {response.json().get('message', 'Unknown error')}")
-            return None
-    except requests.RequestException as e:
-        st.error(f"An error occurred: {e}")
-        return None
-
-def verify_token(token):
-    try:
-        ip_address = st.experimental_get_query_params().get('ip', [None])[0]
-        
-        response = requests.post(
-            TOKEN_VALIDATE_ENDPOINT,
-            headers={'Authorization': f'Bearer {token}', 'X-API-KEY': API_KEY},
-            json={'ip_address': ip_address}
-        )
-        
-        return response.status_code == 200
-    except requests.RequestException as e:
+            error_message = response.json().get('message', 'Unknown error occurred')
+            st.error(f"Login failed: {error_message}")
+            return False
+    except requests.exceptions.RequestException as e:
         st.error(f"An error occurred: {e}")
         return False
 
-def main():
-    st.write("Welcome to the main content of the application!")  # Main page content
-
-# Check if the user is already logged in
-if 'token' in st.session_state and verify_token(st.session_state['token']):
-    main()  # Call the main function
-else:
-    # Show the login form
-    col1, col2, col3 = st.columns([1, 1, 1])
-
-    with col1:
-        st.write("")
-
-    with col2:
+def show_login_signup_page():
+    st.title("Welcome to VIP Business Credit")
+    
+    # Tabs for Login and Sign Up
+    tab_login, tab_signup = st.tabs(["Login", "Sign Up"])
+    
+    # Login Tab
+    with tab_login:
+        st.header("Login")
         with st.form(key='login_form'):
-            st.title("Please log in")
-            username = st.text_input('Username')
-            password = st.text_input('Password', type='password')
-            submit_button = st.form_submit_button(label='Log in')
-
-            if submit_button:
-                token = get_token(username, password)
-                if token and verify_token(token):
-                    st.session_state['token'] = token  # Store the token in session state
-                    st.experimental_rerun()  # Reload the page to reflect login status
+            username = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            login_button = st.form_submit_button("Login")
+    
+            if login_button:
+                if authenticate(username, password):
+                    st.session_state.authenticated = True
+                    st.success("Login successful!")
+                    st.experimental_rerun()
                 else:
-                    st.error('Access denied')
+                    st.error("Invalid username or password")
 
-    with col3:
-        st.write("")
+    # Sign Up Tab
+    with tab_signup:
+        st.header("Sign Up")
+        st.markdown("To create a new account, please click the button below to visit our registration page.")
+        if st.button("Go to Sign Up Page"):
+            webbrowser.open_new_tab(SIGNUP_URL)
+
+# Ensure user is not already authenticated
+if 'authenticated' not in st.session_state:
+    st.session_state.authenticated = False
+
+# Show login/signup page if not authenticated, else show main content
+if not st.session_state.authenticated:
+    show_login_signup_page()
+else:
+    st.write("Welcome to the main content!")
