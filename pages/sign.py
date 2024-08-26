@@ -2,7 +2,7 @@ import streamlit as st
 from wordpress_auth import WordpressAuth
 
 # Set your WordPress site base URL and API key here.
-auth = WordpressAuth(api_key='YOUR_API_KEY', base_url='https://yourwordpressurl.com')
+auth = WordpressAuth(api_key='3g5F ftMi R6I2 jIl0 rguW 2EFU', base_url='https://vipbusinesscredit.com/')
 
 def main():
     st.write("This is the main page of the application.")  # Your main code goes here
