@@ -1,10 +1,10 @@
 import streamlit as st
 import requests
 
-# Retrieve configurations from Streamlit secrets
-WP_URL = st.secrets["wordpress"]["wp_url"]
-JWT_ENDPOINT = f"{WP_URL}{st.secrets['wordpress']['jwt_endpoint']}"
-REGISTER_ENDPOINT = f"{WP_URL}{st.secrets['wordpress']['register_endpoint']}"
+# WordPress site URL and JWT endpoints
+WP_URL = "https://vipbusinesscredit.com"
+JWT_ENDPOINT = f"{WP_URL}/wp-json/jwt-auth/v1/token"
+REGISTER_ENDPOINT = f"{WP_URL}/wp-json/wp/v2/users/register"
 
 def authenticate(username, password):
     try:
@@ -99,4 +99,5 @@ else:
 
     with col3:
         st.write("")  # Spacer
+
 
