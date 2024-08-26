@@ -1,18 +1,19 @@
 import streamlit as st
 import requests
-import webbrowser
 
 # WordPress site URL and JWT endpoints
 WP_URL = "https://vipbusinesscredit.com"
 JWT_ENDPOINT = f"{WP_URL}/wp-json/jwt-auth/v1/token"
-SIGNUP_URL = f"{WP_URL}/wp-admin"  # Assuming this is the sign-up page URL
+REGISTER_ENDPOINT = f"{WP_URL}/wp-json/wp/v2/users/register"
 
 def authenticate(username, password):
     try:
+        # Adding necessary headers
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
+        # Sending a POST request to the JWT Authentication endpoint
         response = requests.post(JWT_ENDPOINT, json={'username': username, 'password': password}, headers=headers)
         
         if response.status_code == 200:
@@ -26,41 +27,75 @@ def authenticate(username, password):
         st.error(f"An error occurred: {e}")
         return False
 
-def show_login_signup_page():
-    st.title("Welcome to VIP Business Credit")
-    
-    # Tabs for Login and Sign Up
-    tab_login, tab_signup = st.tabs(["Login", "Sign Up"])
-    
-    # Login Tab
-    with tab_login:
-        st.header("Login")
-        with st.form(key='login_form'):
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            login_button = st.form_submit_button("Login")
-    
-            if login_button:
-                if authenticate(username, password):
-                    st.session_state.authenticated = True
-                    st.success("Login successful!")
-                    st.experimental_rerun()
-                else:
-                    st.error("Invalid username or password")
+def register(username, password, email):
+    try:
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+        # Sending a POST request to the registration endpoint
+        response = requests.post(REGISTER_ENDPOINT, json={
+            'username': username,
+            'password': password,
+            'email': email
+        }, headers=headers)
 
-    # Sign Up Tab
-    with tab_signup:
-        st.header("Sign Up")
-        st.markdown("To create a new account, please click the button below to visit our registration page.")
-        if st.button("Go to Sign Up Page"):
-            webbrowser.open_new_tab(SIGNUP_URL)
+        if response.status_code == 201:
+            st.success("Registration successful! Please log in.")
+        else:
+            error_message = response.json().get('message', 'Unknown error occurred')
+            st.error(f"Registration failed: {error_message}")
+    except requests.exceptions.RequestException as e:
+        st.error(f"An error occurred: {e}")
 
-# Ensure user is not already authenticated
+def show_login_page():
+    st.title("Login")
+    with st.form(key='login_form'):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        login_button = st.form_submit_button("Login")
+
+        if login_button:
+            if authenticate(username, password):
+                st.session_state.authenticated = True
+                st.success("Login successful!")
+                st.experimental_rerun()  # Rerun the app to display the main content
+            else:
+                st.error("Invalid username or password")
+
+def show_signup_page():
+    st.title("Sign Up")
+    with st.form(key='signup_form'):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        email = st.text_input("Email")
+        signup_button = st.form_submit_button("Sign Up")
+
+        if signup_button:
+            if username and password and email:
+                register(username, password, email)
+            else:
+                st.error("All fields are required")
+
+# Initialize session state
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 
-# Show login/signup page if not authenticated, else show main content
-if not st.session_state.authenticated:
-    show_login_signup_page()
+# Display content based on authentication status
+if st.session_state.authenticated:
+    st.write("Welcome to the main content!")  # Replace this with your main content or functionality
 else:
-    st.write("Welcome to the main content!")
+    col1, col2, col3 = st.columns([1, 2, 1])
+
+    with col1:
+        st.write("")
+
+    with col2:
+        show_login_page()
+        st.write("")  # Space between Login and Sign Up
+
+        if st.button("Sign Up"):
+            show_signup_page()
+
+    with col3:
+        st.write("")
