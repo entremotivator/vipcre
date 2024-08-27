@@ -63,6 +63,10 @@ if not st.session_state.authenticated:
         if login_button:
             login(username, password)
 
+        # Add sign-up link to the sidebar
+        st.sidebar.markdown("---")
+        st.sidebar.markdown("[Sign Up](https://vipbusinesscredit.com/)")
+
 # Main content
 if st.session_state.authenticated:
     # Sidebar with logo and navigation prompt
@@ -141,3 +145,4 @@ else:
 if __name__ == "__main__":
     # You can add any initialization code here if needed
     pass
+
