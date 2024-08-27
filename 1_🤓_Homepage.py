@@ -8,8 +8,8 @@ if 'auth' not in st.session_state:
 def initialize_auth():
     """Initialize the WordPressAuth instance with secrets."""
     try:
-        base_url = st.secrets["base_url"]
-        api_key = st.secrets["api_key"]
+        base_url = st.secrets["general"]["base_url"]
+        api_key = st.secrets["general"]["api_key"]
         return WordpressAuth(api_key=api_key, base_url=base_url)
     except KeyError as e:
         st.error(f"Missing secret: {e}")
