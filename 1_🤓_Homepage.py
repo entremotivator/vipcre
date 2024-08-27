@@ -1,4 +1,39 @@
 import streamlit as st
+from wordpress_auth import WordpressAuth
+
+# Initialize authentication state and auth object
+if 'auth' not in st.session_state:
+    st.session_state.auth = None
+
+def initialize_auth():
+    """Initialize the WordPressAuth instance with secrets."""
+    if 'base_url' not in st.secrets or 'api_key' not in st.secrets:
+        st.error("Configuration missing in secrets.toml.")
+        st.stop()
+    base_url = st.secrets["base_url"]
+    api_key = st.secrets["api_key"]
+    return WordpressAuth(api_key=api_key, base_url=base_url)
+
+def authenticate(username, password):
+    """Authenticate user with WordPress."""
+    auth = st.session_state.auth
+    if auth and auth.verify_token(username):  # Replace this with actual token verification logic
+        return True
+    return False
+
+def login(username, password):
+    """Handle user login process."""
+    auth = st.session_state.auth
+    if auth:
+        token = auth.get_token(username, password)  # Implement get_token method in your WordpressAuth class
+        if token:
+            st.session_state.authenticated = True
+            st.session_state.token = token
+            st.success("Login successful!")
+        else:
+            st.error("Invalid username or password")
+    else:
+        st.error("Authentication system is not initialized.")
 
 # Set page configuration
 st.set_page_config(
@@ -7,10 +42,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# Function to authenticate the user
-def authenticate(username, password):
-    # Demo credentials: username = 'user', password = 'pass'
-    return username == "user" and password == "pass"
+# Initialize authentication
+if st.session_state.auth is None:
+    st.session_state.auth = initialize_auth()
 
 # Initialize authentication state
 if "authenticated" not in st.session_state:
@@ -26,11 +60,7 @@ if not st.session_state.authenticated:
             login_button = st.form_submit_button("Login")
         
         if login_button:
-            if authenticate(username, password):
-                st.session_state.authenticated = True
-                st.success("Login successful!")
-            else:
-                st.error("Invalid username or password")
+            login(username, password)
 
 # Main content
 if st.session_state.authenticated:
